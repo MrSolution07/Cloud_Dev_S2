@@ -1,0 +1,28 @@
+# Ignore Visual Studio / .NET
+.vs/
+*.user
+*.suo
+bin/
+obj/
+publish/
+*.publishproj
+*.zip
+
+# Secrets
+**/appsettings.Development.json
+**/appsettings.*.local.json
+.env
+.env.*
+
+# OS / IDE
+.DS_Store
+.idea/
+*.swp
+
+# Local / generated
+.azure-cli-tmp/
+graphify-out/
+
+# Publish profiles may contain secrets
+**/Properties/PublishProfiles/*.pubxml
+**/Properties/ServiceDependencies/
