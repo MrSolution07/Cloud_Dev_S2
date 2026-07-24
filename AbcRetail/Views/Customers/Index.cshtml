@@ -1,0 +1,47 @@
+@model IReadOnlyList<AbcRetail.Models.CustomerEntity>
+@{
+    ViewData["Title"] = "Customers";
+}
+
+<section class="glass-panel">
+    <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+        <div>
+            <h1 class="section-title">Customers</h1>
+            <p class="section-lead">@Model.Count customer(s) on file</p>
+        </div>
+        <a class="btn-accent" asp-action="Create">Add customer</a>
+    </div>
+
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>City</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var c in Model)
+        {
+            <tr>
+                <td>
+                    <span class="avatar-initial">@c.FirstName[0]@c.LastName[0]</span>
+                    @c.FirstName @c.LastName
+                </td>
+                <td>@c.Email</td>
+                <td>@(c.Phone ?? "—")</td>
+                <td>@(c.City ?? "—")</td>
+                <td>
+                    <form asp-action="Delete" method="post" onsubmit="return confirm('Delete this customer?');">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="rowKey" value="@c.RowKey" />
+                        <button type="submit" class="btn-danger">Delete</button>
+                    </form>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</section>

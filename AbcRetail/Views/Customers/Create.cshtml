@@ -1,0 +1,45 @@
+@model AbcRetail.Models.CustomerEntity
+@{
+    ViewData["Title"] = "Add customer";
+}
+
+<section class="glass-panel">
+    <h1 class="section-title">Add customer</h1>
+    <p class="section-lead">Create a new customer record.</p>
+
+    <form asp-action="Create" method="post" class="form-grid">
+        @Html.AntiForgeryToken()
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <label>
+            First name
+            <input asp-for="FirstName" />
+            <span asp-validation-for="FirstName" class="text-danger"></span>
+        </label>
+        <label>
+            Last name
+            <input asp-for="LastName" />
+            <span asp-validation-for="LastName" class="text-danger"></span>
+        </label>
+        <label>
+            Email
+            <input asp-for="Email" />
+            <span asp-validation-for="Email" class="text-danger"></span>
+        </label>
+        <label>
+            Phone
+            <input asp-for="Phone" />
+        </label>
+        <label>
+            City
+            <input asp-for="City" />
+        </label>
+        <div class="cta-row">
+            <button type="submit" class="btn-accent">Save customer</button>
+            <a class="btn-ghost" asp-action="Index">Cancel</a>
+        </div>
+    </form>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
