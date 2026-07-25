@@ -1,0 +1,45 @@
+@model AbcRetail.Models.ProductCreateViewModel
+@{
+    ViewData["Title"] = "Add product";
+}
+
+<section class="glass-panel">
+    <h1 class="section-title">Add product</h1>
+    <p class="section-lead">Add a new product to the catalog (image max 1 MB · JPEG/PNG/WebP/GIF).</p>
+
+    <form asp-action="Create" method="post" enctype="multipart/form-data" class="form-grid">
+        @Html.AntiForgeryToken()
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <label>
+            Name
+            <input asp-for="Name" />
+            <span asp-validation-for="Name" class="text-danger"></span>
+        </label>
+        <label>
+            Description
+            <textarea asp-for="Description" rows="3"></textarea>
+        </label>
+        <label>
+            Price (ZAR)
+            <input asp-for="Price" />
+            <span asp-validation-for="Price" class="text-danger"></span>
+        </label>
+        <label>
+            Stock
+            <input asp-for="Stock" />
+        </label>
+        <label>
+            Product image
+            <input asp-for="Image" type="file" accept="image/*" />
+            <span asp-validation-for="Image" class="text-danger"></span>
+        </label>
+        <div class="cta-row">
+            <button type="submit" class="btn-accent">Save product</button>
+            <a class="btn-ghost" asp-action="Index">Cancel</a>
+        </div>
+    </form>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

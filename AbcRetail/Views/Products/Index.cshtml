@@ -1,0 +1,57 @@
+@model IReadOnlyList<AbcRetail.Models.ProductEntity>
+@{
+    ViewData["Title"] = "Shop";
+}
+
+<section class="glass-panel">
+    <div>
+        <h1 class="section-title">Shop</h1>
+        <p class="section-lead">Browse the full catalog and add anything you like straight to your cart.</p>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <p>No products available right now — check back soon.</p>
+    }
+    else
+    {
+        <div class="product-grid">
+            @foreach (var p in Model)
+            {
+                <article class="product-card">
+                    <div class="product-card-media">
+                        @if (!string.IsNullOrWhiteSpace(p.ImageUrl))
+                        {
+                            <img src="@p.ImageUrl" alt="@p.Name" loading="lazy" />
+                        }
+                        else
+                        {
+                            <span class="product-card-placeholder">ABC</span>
+                        }
+                        @if (p.Stock <= 0)
+                        {
+                            <span class="stock-badge out">Out of stock</span>
+                        }
+                        else if (p.Stock <= 5)
+                        {
+                            <span class="stock-badge low">Only @p.Stock left</span>
+                        }
+                    </div>
+                    <div class="product-card-body">
+                        <h3>@p.Name</h3>
+                        @if (!string.IsNullOrWhiteSpace(p.Description))
+                        {
+                            <p class="product-card-desc">@p.Description</p>
+                        }
+                        <p class="product-card-price">@p.Price.ToString("C")</p>
+                        <form asp-controller="Orders" asp-action="Enqueue" method="post">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="productRowKey" value="@p.RowKey" />
+                            <button type="submit" class="btn-accent" style="width:100%;" @(p.Stock <= 0 ? "disabled" : "")>Add to cart</button>
+                        </form>
+                    </div>
+                </article>
+            }
+        </div>
+    }
+</section>

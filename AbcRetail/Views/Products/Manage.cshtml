@@ -1,0 +1,59 @@
+@model IReadOnlyList<AbcRetail.Models.ProductEntity>
+@{
+    ViewData["Title"] = "Manage products";
+    var blobCount = ViewBag.BlobCount as int? ?? 0;
+}
+
+<section class="glass-panel">
+    <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+        <div>
+            <h1 class="section-title">Manage products</h1>
+            <p class="section-lead">Catalog · @Model.Count product(s) · @blobCount image(s) stored</p>
+        </div>
+        <a class="btn-accent" asp-action="Create">Add product</a>
+    </div>
+
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Image</th>
+                <th>Name</th>
+                <th>Price (ZAR)</th>
+                <th>Stock</th>
+                <th>Image file</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var p in Model)
+        {
+            <tr>
+                <td>
+                    @if (!string.IsNullOrWhiteSpace(p.ImageUrl))
+                    {
+                        <img class="product-thumb" src="@p.ImageUrl" alt="@p.Name" loading="lazy" width="64" height="64" />
+                    }
+                    else
+                    {
+                        <span class="pill">No image</span>
+                    }
+                </td>
+                <td>
+                    <strong>@p.Name</strong>
+                    <div class="text-muted small">@(p.Description ?? "")</div>
+                </td>
+                <td>@p.Price.ToString("C")</td>
+                <td>@p.Stock</td>
+                <td class="mono">@(p.ImageBlobName ?? "—")</td>
+                <td>
+                    <form asp-action="Delete" method="post" onsubmit="return confirm('Delete this product?');">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="rowKey" value="@p.RowKey" />
+                        <button type="submit" class="btn-danger">Delete</button>
+                    </form>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</section>
