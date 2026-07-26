@@ -1,0 +1,84 @@
+@model AbcRetail.Models.OrdersIndexViewModel
+@{
+    ViewData["Title"] = "Cart & orders";
+
+    static (string Kind, string Product, string Image, string Extra) ParseMessage(string text)
+    {
+        var parts = text.Split('|');
+        var kind = parts.Length > 0 ? parts[0] : text;
+        var product = parts.Length > 2 ? parts[2] : text;
+        // Order: Processing order|id|name|image|utc
+        // Inventory: Inventory update|id|name|stock|image|utc
+        var image = kind.StartsWith("Inventory", StringComparison.OrdinalIgnoreCase)
+            ? (parts.Length > 4 ? parts[4] : "none")
+            : (parts.Length > 3 ? parts[3] : "none");
+        var extra = kind.StartsWith("Inventory", StringComparison.OrdinalIgnoreCase) && parts.Length > 3
+            ? $"stock={parts[3]}"
+            : "";
+        return (kind, product, image, extra);
+    }
+}
+
+<section class="glass-panel">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div>
+            <h1 class="section-title">Order processing queue</h1>
+            <p class="section-lead">@Model.ApproximateOrderCount message(s) in <code>order-processing</code>.</p>
+        </div>
+        <form asp-action="Dequeue" method="post" onsubmit="return confirm('Process oldest order? This updates inventory and queues an inventory message.');">
+            @Html.AntiForgeryToken()
+            <button type="submit" class="btn-danger">Process oldest order</button>
+        </form>
+    </div>
+
+    @if (!Model.PeekedOrderMessages.Any())
+    {
+        <p>No orders yet — head to the <a asp-controller="Products" asp-action="Index">shop</a> to place one.</p>
+    }
+    else
+    {
+        <div class="order-list">
+        @foreach (var m in Model.PeekedOrderMessages)
+        {
+            var parsed = ParseMessage(m.MessageText);
+            <div class="order-card">
+                <div>
+                    <strong>@parsed.Product</strong>
+                    <div class="text-muted small">imageName: <code>@parsed.Image</code></div>
+                    <div class="text-muted small"><code>@m.MessageText</code></div>
+                    <div class="text-muted small">Placed @m.InsertedOn</div>
+                </div>
+                <span class="pill">@parsed.Kind</span>
+            </div>
+        }
+        </div>
+    }
+</section>
+
+<section class="glass-panel" style="margin-top:1.5rem;">
+    <h1 class="section-title">Inventory management queue</h1>
+    <p class="section-lead">@Model.ApproximateInventoryCount message(s) in <code>inventory-management</code>.</p>
+
+    @if (!Model.PeekedInventoryMessages.Any())
+    {
+        <p>No inventory messages yet — process an order above to create one.</p>
+    }
+    else
+    {
+        <div class="order-list">
+        @foreach (var m in Model.PeekedInventoryMessages)
+        {
+            var parsed = ParseMessage(m.MessageText);
+            <div class="order-card">
+                <div>
+                    <strong>@parsed.Product</strong>
+                    <div class="text-muted small">imageName: <code>@parsed.Image</code> @parsed.Extra</div>
+                    <div class="text-muted small"><code>@m.MessageText</code></div>
+                    <div class="text-muted small">Queued @m.InsertedOn</div>
+                </div>
+                <span class="pill">Inventory</span>
+            </div>
+        }
+        </div>
+    }
+</section>
