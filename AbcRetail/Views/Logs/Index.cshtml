@@ -1,0 +1,57 @@
+@model AbcRetail.Models.LogsIndexViewModel
+@{
+    ViewData["Title"] = "Logs";
+}
+
+<section class="glass-panel">
+    <h1 class="section-title">System logs</h1>
+    <p class="section-lead">@Model.Files.Count log file(s) on record</p>
+
+    <form asp-action="Create" method="post" class="form-grid">
+        @Html.AntiForgeryToken()
+        <label>
+            File name
+            <input asp-for="Create.FileName" />
+            <span asp-validation-for="Create.FileName" class="text-danger"></span>
+        </label>
+        <label>
+            Content
+            <textarea asp-for="Create.Content" rows="4"></textarea>
+            <span asp-validation-for="Create.Content" class="text-danger"></span>
+        </label>
+        <button type="submit" class="btn-accent">Write log entry</button>
+    </form>
+</section>
+
+<section class="glass-panel">
+    <h2 class="section-title" style="font-size:1.5rem;">Log files</h2>
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>File name</th>
+                <th>Size</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var f in Model.Files)
+        {
+            <tr>
+                <td class="mono">@f.Name</td>
+                <td>@(f.Size?.ToString() ?? "—")</td>
+                <td>
+                    <a class="btn-glass" asp-action="Download" asp-route-fileName="@f.Name">Download</a>
+                </td>
+            </tr>
+        }
+        @if (!Model.Files.Any())
+        {
+            <tr><td colspan="3">No log files yet. Create one above or add customers/products/orders (they auto-log).</td></tr>
+        }
+        </tbody>
+    </table>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
