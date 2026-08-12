@@ -5,7 +5,7 @@
 
 <section class="glass-panel">
     <h1 class="section-title">Add product</h1>
-    <p class="section-lead">Add a new product to the catalog (image max 1 MB · JPEG/PNG/WebP/GIF).</p>
+    <p class="section-lead">Add a new product to the catalog — upload up to 5 images (JPEG/PNG/WebP/GIF, 1 MB each).</p>
 
     <form asp-action="Create" method="post" enctype="multipart/form-data" class="form-grid">
         @Html.AntiForgeryToken()
@@ -17,7 +17,7 @@
         </label>
         <label>
             Description
-            <textarea asp-for="Description" rows="3"></textarea>
+            <textarea asp-for="Description" rows="6" placeholder="Materials, dimensions, capacity, what's included..."></textarea>
         </label>
         <label>
             Price (ZAR)
@@ -29,13 +29,13 @@
             <input asp-for="Stock" />
         </label>
         <label>
-            Product image
-            <input asp-for="Image" type="file" accept="image/*" />
-            <span asp-validation-for="Image" class="text-danger"></span>
+            Product images (select up to 5 — first one becomes the cover image)
+            <input name="Images" type="file" accept="image/*" multiple />
+            <span asp-validation-for="Images" class="text-danger"></span>
         </label>
         <div class="cta-row">
             <button type="submit" class="btn-accent">Save product</button>
-            <a class="btn-ghost" asp-action="Index">Cancel</a>
+            <a class="btn-ghost" asp-action="Manage">Cancel</a>
         </div>
     </form>
 </section>

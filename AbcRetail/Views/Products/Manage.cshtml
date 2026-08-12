@@ -20,7 +20,7 @@
                 <th>Name</th>
                 <th>Price (ZAR)</th>
                 <th>Stock</th>
-                <th>Image file</th>
+                <th>Images</th>
                 <th></th>
             </tr>
         </thead>
@@ -44,7 +44,7 @@
                 </td>
                 <td>@p.Price.ToString("C")</td>
                 <td>@p.Stock</td>
-                <td class="mono">@(p.ImageBlobName ?? "—")</td>
+                <td class="mono">@p.AllImageBlobNames.Count image(s)</td>
                 <td>
                     <form asp-action="Delete" method="post" onsubmit="return confirm('Delete this product?');">
                         @Html.AntiForgeryToken()

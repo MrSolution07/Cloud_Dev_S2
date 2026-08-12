@@ -1,0 +1,70 @@
+@model AbcRetail.Models.ProductEntity
+@{
+    ViewData["Title"] = Model.Name;
+    var gallery = ViewBag.GalleryUrls as List<string> ?? new List<string>();
+}
+
+<section class="glass-panel product-detail">
+    <div class="product-gallery">
+        @if (gallery.Any())
+        {
+            <div class="product-gallery-main">
+                <img id="mainImage" src="@gallery[0]" alt="@Model.Name" />
+            </div>
+            @if (gallery.Count > 1)
+            {
+                <div class="product-gallery-thumbs">
+                    @foreach (var url in gallery)
+                    {
+                        <img src="@url" alt="@Model.Name" class="gallery-thumb" onclick="document.getElementById('mainImage').src=this.src" />
+                    }
+                </div>
+            }
+        }
+        else
+        {
+            <div class="product-gallery-main product-card-placeholder-large">ABC</div>
+        }
+    </div>
+
+    <div class="product-detail-body">
+        <h1 class="section-title">@Model.Name</h1>
+        <p class="product-card-price" style="font-size:1.5rem;">@Model.Price.ToString("C")</p>
+
+        @if (Model.Stock <= 0)
+        {
+            <span class="stock-badge out" style="position:static;display:inline-block;">Out of stock</span>
+        }
+        else if (Model.Stock <= 5)
+        {
+            <span class="stock-badge low" style="position:static;display:inline-block;">Only @Model.Stock left</span>
+        }
+        else
+        {
+            <span class="pill">In stock: @Model.Stock</span>
+        }
+
+        @if (!string.IsNullOrWhiteSpace(Model.Description))
+        {
+            <p class="section-lead" style="white-space:pre-wrap;margin-top:1rem;">@Model.Description</p>
+        }
+
+        <div class="cta-row" style="margin-top:1rem;">
+            @if (User.Identity?.IsAuthenticated == true)
+            {
+                <form asp-controller="Orders" asp-action="Enqueue" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="productRowKey" value="@Model.RowKey" />
+                    <button type="submit" class="btn-accent" @(Model.Stock <= 0 ? "disabled" : "")>Add to cart</button>
+                </form>
+            }
+            else
+            {
+                <a class="btn-accent"
+                   asp-controller="Account" asp-action="Login"
+                   asp-route-returnUrl="@Url.Action("Details", "Products", new { rowKey = Model.RowKey })">Log in to buy</a>
+            }
+            <a class="btn-ghost" asp-action="Index">Back to shop</a>
+        </div>
+    </div>
+</section>

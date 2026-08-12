@@ -5,12 +5,14 @@ using Microsoft.Extensions.Options;
 
 namespace AbcRetail.Services;
 
-/// <summary>Azure Table Storage for customer profiles and product catalogue rows.</summary>
+/// <summary>Azure Table Storage for customer/admin login profiles and product catalogue rows.</summary>
 public interface ITableStorageService
 {
     Task EnsureInitializedAsync(CancellationToken ct = default);
     Task<IReadOnlyList<CustomerEntity>> GetCustomersAsync(CancellationToken ct = default);
+    Task<CustomerEntity?> GetUserByEmailAsync(string email, CancellationToken ct = default);
     Task AddCustomerAsync(CustomerEntity entity, CancellationToken ct = default);
+    Task UpdateCustomerAsync(CustomerEntity entity, CancellationToken ct = default);
     Task DeleteCustomerAsync(string rowKey, CancellationToken ct = default);
     Task<IReadOnlyList<ProductEntity>> GetProductsAsync(CancellationToken ct = default);
     Task<ProductEntity?> GetProductAsync(string rowKey, CancellationToken ct = default);
@@ -46,11 +48,12 @@ public sealed class TableStorageService : ITableStorageService
         _initialized = true;
     }
 
+    // Full table scan (partition USER for logins + legacy CUSTOMER rows created before auth existed).
     public async Task<IReadOnlyList<CustomerEntity>> GetCustomersAsync(CancellationToken ct = default)
     {
         await EnsureInitializedAsync(ct);
         var results = new List<CustomerEntity>();
-        await foreach (var entity in Customers.QueryAsync<CustomerEntity>(e => e.PartitionKey == "CUSTOMER", cancellationToken: ct))
+        await foreach (var entity in Customers.QueryAsync<CustomerEntity>(cancellationToken: ct))
         {
             results.Add(entity);
         }
@@ -58,22 +61,47 @@ public sealed class TableStorageService : ITableStorageService
         return results.OrderByDescending(c => c.Timestamp).ToList();
     }
 
+    public async Task<CustomerEntity?> GetUserByEmailAsync(string email, CancellationToken ct = default)
+    {
+        await EnsureInitializedAsync(ct);
+        try
+        {
+            var response = await Customers.GetEntityAsync<CustomerEntity>("USER", CustomerEntity.NormalizeEmail(email), cancellationToken: ct);
+            return response.Value;
+        }
+        catch (Azure.RequestFailedException ex) when (ex.Status == 404)
+        {
+            return null;
+        }
+    }
+
+    // Registration: row key is the normalized email so login can look it up directly.
     public async Task AddCustomerAsync(CustomerEntity entity, CancellationToken ct = default)
     {
         await EnsureInitializedAsync(ct);
-        entity.PartitionKey = "CUSTOMER";
-        if (string.IsNullOrWhiteSpace(entity.RowKey))
-        {
-            entity.RowKey = Guid.NewGuid().ToString("N");
-        }
-
+        entity.PartitionKey = "USER";
+        entity.RowKey = CustomerEntity.NormalizeEmail(entity.Email);
         await Customers.AddEntityAsync(entity, ct);
+    }
+
+    public async Task UpdateCustomerAsync(CustomerEntity entity, CancellationToken ct = default)
+    {
+        await EnsureInitializedAsync(ct);
+        await Customers.UpdateEntityAsync(entity, entity.ETag, cancellationToken: ct);
     }
 
     public async Task DeleteCustomerAsync(string rowKey, CancellationToken ct = default)
     {
         await EnsureInitializedAsync(ct);
-        await Customers.DeleteEntityAsync("CUSTOMER", rowKey, cancellationToken: ct);
+        try
+        {
+            await Customers.DeleteEntityAsync("USER", rowKey, cancellationToken: ct);
+        }
+        catch (Azure.RequestFailedException ex) when (ex.Status == 404)
+        {
+            // legacy row created before auth existed
+            await Customers.DeleteEntityAsync("CUSTOMER", rowKey, cancellationToken: ct);
+        }
     }
 
     public async Task<IReadOnlyList<ProductEntity>> GetProductsAsync(CancellationToken ct = default)

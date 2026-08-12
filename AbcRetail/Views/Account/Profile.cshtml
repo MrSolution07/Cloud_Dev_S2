@@ -1,0 +1,39 @@
+@model AbcRetail.Models.ProfileViewModel
+@{
+    ViewData["Title"] = "My profile";
+}
+
+<section class="glass-panel" style="max-width:520px;margin:0 auto;">
+    <h1 class="section-title">My profile</h1>
+    <p class="section-lead">@Model.Email · <span class="pill">@Model.Role</span></p>
+
+    <form asp-action="Profile" method="post" class="form-grid">
+        @Html.AntiForgeryToken()
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <label>
+            First name
+            <input asp-for="FirstName" />
+            <span asp-validation-for="FirstName" class="text-danger"></span>
+        </label>
+        <label>
+            Last name
+            <input asp-for="LastName" />
+            <span asp-validation-for="LastName" class="text-danger"></span>
+        </label>
+        <label>
+            Phone
+            <input asp-for="Phone" />
+        </label>
+        <label>
+            City
+            <input asp-for="City" />
+        </label>
+        <div class="cta-row">
+            <button type="submit" class="btn-accent">Save profile</button>
+        </div>
+    </form>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

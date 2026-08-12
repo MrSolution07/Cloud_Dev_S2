@@ -1,5 +1,6 @@
 using AbcRetail.Models;
 using AbcRetail.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AbcRetail.Controllers;
@@ -32,15 +33,28 @@ public class ProductsController : Controller
         }
 
         var products = await _tables.GetProductsAsync(ct);
-        foreach (var product in products.Where(p => !string.IsNullOrWhiteSpace(p.ImageBlobName)))
-        {
-            product.ImageUrl = _blobs.GetBlobUrl(product.ImageBlobName!);
-        }
-
-        ViewBag.BlobCount = (await _blobs.ListBlobNamesAsync(ct)).Count;
+        ResolveImages(products);
         return View(products);
     }
 
+    public async Task<IActionResult> Details(string rowKey, CancellationToken ct)
+    {
+        if (!_gate.IsConfigured)
+        {
+            return View("~/Views/Shared/StorageNotConfigured.cshtml", _gate.MissingReason);
+        }
+
+        var product = await _tables.GetProductAsync(rowKey, ct);
+        if (product is null)
+        {
+            return NotFound();
+        }
+
+        ViewBag.GalleryUrls = product.AllImageBlobNames.Select(_blobs.GetBlobUrl).ToList();
+        return View(product);
+    }
+
+    [Authorize(Roles = CustomerEntity.RoleAdmin)]
     public async Task<IActionResult> Manage(CancellationToken ct)
     {
         if (!_gate.IsConfigured)
@@ -49,15 +63,12 @@ public class ProductsController : Controller
         }
 
         var products = await _tables.GetProductsAsync(ct);
-        foreach (var product in products.Where(p => !string.IsNullOrWhiteSpace(p.ImageBlobName)))
-        {
-            product.ImageUrl = _blobs.GetBlobUrl(product.ImageBlobName!);
-        }
-
+        ResolveImages(products);
         ViewBag.BlobCount = (await _blobs.ListBlobNamesAsync(ct)).Count;
         return View(products);
     }
 
+    [Authorize(Roles = CustomerEntity.RoleAdmin)]
     [HttpGet]
     public IActionResult Create()
     {
@@ -69,9 +80,10 @@ public class ProductsController : Controller
         return View(new ProductCreateViewModel());
     }
 
+    [Authorize(Roles = CustomerEntity.RoleAdmin)]
     [HttpPost]
     [ValidateAntiForgeryToken]
-    [RequestSizeLimit(3 * 1024 * 1024)]
+    [RequestSizeLimit(6 * 1024 * 1024)]
     public async Task<IActionResult> Create(ProductCreateViewModel model, CancellationToken ct)
     {
         if (!_gate.IsConfigured)
@@ -92,30 +104,37 @@ public class ProductsController : Controller
             Stock = model.Stock
         };
 
-        if (model.Image is { Length: > 0 })
+        var uploaded = new List<string>();
+        foreach (var image in model.Images.Where(f => f.Length > 0).Take(5))
         {
             try
             {
-                var (blobName, url) = await _blobs.UploadProductImageAsync(model.Image, ct);
-                entity.ImageBlobName = blobName;
-                entity.ImageUrl = url;
+                var (blobName, _) = await _blobs.UploadProductImageAsync(image, ct);
+                uploaded.Add(blobName);
             }
             catch (Exception ex)
             {
-                ModelState.AddModelError(nameof(model.Image), ex.Message);
+                ModelState.AddModelError(nameof(model.Images), ex.Message);
                 return View(model);
             }
+        }
+
+        if (uploaded.Count > 0)
+        {
+            entity.ImageBlobNames = string.Join('|', uploaded);
+            entity.ImageBlobName = uploaded[0];
         }
 
         await _tables.AddProductAsync(entity, ct);
         await _files.WriteLogAsync(
             $"product-{DateTime.UtcNow:yyyyMMdd-HHmmss}.log",
-            $"Created product {entity.Name} blob={entity.ImageBlobName ?? "none"} at {DateTime.UtcNow:O}",
+            $"Created product {entity.Name} images={uploaded.Count} at {DateTime.UtcNow:O}",
             ct);
-        TempData["Status"] = "Product saved to Table Storage; image stored in Blob Storage when provided.";
-        return RedirectToAction(nameof(Index));
+        TempData["Status"] = "Product saved to Table Storage; images stored in Blob Storage.";
+        return RedirectToAction(nameof(Manage));
     }
 
+    [Authorize(Roles = CustomerEntity.RoleAdmin)]
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Delete(string rowKey, CancellationToken ct)
@@ -127,6 +146,18 @@ public class ProductsController : Controller
 
         await _tables.DeleteProductAsync(rowKey, ct);
         TempData["Status"] = "Product deleted from Table Storage.";
-        return RedirectToAction(nameof(Index));
+        return RedirectToAction(nameof(Manage));
+    }
+
+    private void ResolveImages(IEnumerable<ProductEntity> products)
+    {
+        foreach (var product in products)
+        {
+            var primary = product.PrimaryImageBlobName;
+            if (!string.IsNullOrWhiteSpace(primary))
+            {
+                product.ImageUrl = _blobs.GetBlobUrl(primary);
+            }
+        }
     }
 }

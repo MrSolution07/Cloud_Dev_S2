@@ -9,7 +9,7 @@ namespace AbcRetail.Services;
 public interface IQueueStorageService
 {
     Task EnsureInitializedAsync(CancellationToken ct = default);
-    Task SendOrderMessageAsync(string productId, string productName, string? imageName, CancellationToken ct = default);
+    Task SendOrderMessageAsync(string productId, string productName, string? imageName, string customerEmail, CancellationToken ct = default);
     Task SendInventoryMessageAsync(string productId, string productName, int stock, string? imageName, CancellationToken ct = default);
     Task<IReadOnlyList<OrderMessageViewModel>> PeekOrderMessagesAsync(int maxMessages = 32, CancellationToken ct = default);
     Task<IReadOnlyList<OrderMessageViewModel>> PeekInventoryMessagesAsync(int maxMessages = 32, CancellationToken ct = default);
@@ -54,12 +54,13 @@ public sealed class QueueStorageService : IQueueStorageService
         _initialized = true;
     }
 
-    // Format matches brief example: Processing order + imageName.
-    public async Task SendOrderMessageAsync(string productId, string productName, string? imageName, CancellationToken ct = default)
+    // Format matches brief example: Processing order + imageName. Email appended after imageName
+    // so existing index-based parsing (parts[3] = imageName) keeps working.
+    public async Task SendOrderMessageAsync(string productId, string productName, string? imageName, string customerEmail, CancellationToken ct = default)
     {
         await EnsureInitializedAsync(ct);
         var imagePart = string.IsNullOrWhiteSpace(imageName) ? "none" : imageName;
-        var text = $"Processing order|{productId}|{productName}|{imagePart}|{DateTime.UtcNow:O}";
+        var text = $"Processing order|{productId}|{productName}|{imagePart}|{customerEmail}|{DateTime.UtcNow:O}";
         await OrderQueue.SendMessageAsync(text, cancellationToken: ct);
     }
 

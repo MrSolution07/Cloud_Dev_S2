@@ -1,0 +1,189 @@
+@model AbcRetail.Models.DashboardViewModel
+@{
+    ViewData["Title"] = "Dashboard";
+
+    static string ParseOrderProduct(string text)
+    {
+        var parts = text.Split('|');
+        return parts.Length > 2 ? parts[2] : text;
+    }
+}
+
+<section class="dash-hero glass-panel">
+    <p class="pill">Azure Cloud Operations</p>
+    <h1 class="section-title dash-title">ABC Retail Command Centre</h1>
+    <p class="section-lead">
+        Real-time order processing, inventory management, and customer data — powered by Azure Table, Blob, Queue, and File Storage.
+    </p>
+    <div class="cta-row">
+        <a class="btn-accent" asp-controller="Orders" asp-action="Index">View Order Queue</a>
+        <a class="btn-ghost" asp-controller="Customers" asp-action="Create">Add Customer</a>
+    </div>
+</section>
+
+<section class="peak-banner glass-panel">
+    <div class="peak-banner-copy">
+        <strong>PEAK SEASON — Christmas 2026</strong>
+        <p>High transaction volume expected. Monitor the Order Queue closely for processing delays.</p>
+    </div>
+    <span class="live-pill">LIVE</span>
+</section>
+
+<section class="stat-grid">
+    <article class="stat-tile glass-panel">
+        <span class="stat-label">Customers</span>
+        <strong class="stat-value">@Model.CustomerCount</strong>
+    </article>
+    <article class="stat-tile glass-panel">
+        <span class="stat-label">Product Images</span>
+        <strong class="stat-value">@Model.ProductImageCount</strong>
+    </article>
+    <article class="stat-tile glass-panel">
+        <span class="stat-label">Queue Messages</span>
+        <strong class="stat-value">@Model.QueueMessageCount</strong>
+    </article>
+    <article class="stat-tile glass-panel">
+        <span class="stat-label">Log Files</span>
+        <strong class="stat-value">@Model.LogFileCount</strong>
+    </article>
+</section>
+
+<section class="glass-panel">
+    <h2 class="section-title" style="font-size:1.5rem;">Azure Storage Services</h2>
+    <p class="section-lead">Click any service to view, upload, or manage its data</p>
+    <div class="service-grid">
+        <a class="service-card" asp-controller="Customers" asp-action="Index">
+            <h3>Table Storage</h3>
+            <p>Customer profiles stored as NoSQL entities in Azure Tables.</p>
+            <span class="pill">@Model.CustomerCount records</span>
+        </a>
+        <a class="service-card" asp-controller="Products" asp-action="Manage">
+            <h3>Blob Storage</h3>
+            <p>Product images served from Azure Blob containers.</p>
+            <span class="pill">@Model.ProductImageCount images</span>
+        </a>
+        <a class="service-card" asp-controller="Orders" asp-action="Index">
+            <h3>Queue Storage</h3>
+            <p>Order processing messages in the Azure Queue.</p>
+            <span class="pill">@Model.QueueMessageCount messages</span>
+        </a>
+        <a class="service-card" asp-controller="Logs" asp-action="Index">
+            <h3>File Storage</h3>
+            <p>System logs in Azure File Shares.</p>
+            <span class="pill">@Model.LogFileCount files</span>
+        </a>
+    </div>
+</section>
+
+<div class="recent-grid">
+    <section class="glass-panel">
+        <div class="recent-head">
+            <h2 class="section-title" style="font-size:1.25rem;">Recent Customers</h2>
+            <a class="btn-glass" asp-controller="Customers" asp-action="Index">View all</a>
+        </div>
+        @if (!Model.RecentCustomers.Any())
+        {
+            <p class="section-lead" style="margin:0;">No customers yet.</p>
+        }
+        else
+        {
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Added</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var c in Model.RecentCustomers)
+                {
+                    <tr>
+                        <td>@c.FirstName @c.LastName</td>
+                        <td>@c.Email</td>
+                        <td>@(c.Timestamp?.ToString("dd MMM") ?? "—")</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        }
+    </section>
+
+    <section class="glass-panel">
+        <div class="recent-head">
+            <h2 class="section-title" style="font-size:1.25rem;">Recent Orders</h2>
+            <a class="btn-glass" asp-controller="Orders" asp-action="Index">View queue</a>
+        </div>
+        @if (!Model.RecentOrders.Any())
+        {
+            <p class="section-lead" style="margin:0;">No messages in the queue yet. <a asp-controller="Products" asp-action="Index">Send your first order</a>.</p>
+        }
+        else
+        {
+            <div class="order-list">
+            @foreach (var m in Model.RecentOrders)
+            {
+                <div class="order-card">
+                    <div>
+                        <strong>@ParseOrderProduct(m.MessageText)</strong>
+                        <div class="text-muted small">@m.InsertedOn</div>
+                    </div>
+                    <span class="pill">Processing</span>
+                </div>
+            }
+            </div>
+        }
+    </section>
+
+    <section class="glass-panel">
+        <div class="recent-head">
+            <h2 class="section-title" style="font-size:1.25rem;">Recent Logs</h2>
+            <a class="btn-glass" asp-controller="Logs" asp-action="Index">View all</a>
+        </div>
+        @if (!Model.RecentLogs.Any())
+        {
+            <p class="section-lead" style="margin:0;">No log files yet.</p>
+        }
+        else
+        {
+            <ul class="log-list">
+            @foreach (var log in Model.RecentLogs)
+            {
+                <li>
+                    <span>@log.Name</span>
+                    <span class="pill">File Share</span>
+                </li>
+            }
+            </ul>
+        }
+    </section>
+
+    <section class="glass-panel">
+        <div class="recent-head">
+            <h2 class="section-title" style="font-size:1.25rem;">Recent Products</h2>
+            <a class="btn-glass" asp-controller="Products" asp-action="Manage">View gallery</a>
+        </div>
+        @if (!Model.RecentProducts.Any())
+        {
+            <p class="section-lead" style="margin:0;">No products yet.</p>
+        }
+        else
+        {
+            <div class="dash-product-thumbs">
+            @foreach (var p in Model.RecentProducts)
+            {
+                <a asp-controller="Products" asp-action="Details" asp-route-rowKey="@p.RowKey" class="dash-thumb" title="@p.Name">
+                    @if (!string.IsNullOrWhiteSpace(p.ImageUrl))
+                    {
+                        <img src="@p.ImageUrl" alt="@p.Name" loading="lazy" />
+                    }
+                    else
+                    {
+                        <span>@p.Name</span>
+                    }
+                </a>
+            }
+            </div>
+        }
+    </section>
+</div>

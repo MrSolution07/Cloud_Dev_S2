@@ -6,14 +6,30 @@ ASP.NET Core MVC app for **ABC Retail** using all four Azure Storage services:
 
 | Service | Feature |
 |---------|---------|
-| Azure Tables | Customers + Products |
-| Azure Blob Storage | Product images (`product-images`) |
+| Azure Tables | Customer/Admin login profiles (Customers table) + Products |
+| Azure Blob Storage | Product images — multiple per product (`product-images`) |
 | Azure Queues | Orders (`order-processing`) + inventory (`inventory-management`) |
 | Azure Files | Log files (`applogs` / `logs`) |
 
-UI: liquid-glass (CSS glassmorphism), lightweight images (≤1 MB).
+UI: liquid-glass outdoor look (CSS glassmorphism; kayak sites as visual inspiration only — catalog stays general retail), lightweight images (≤1 MB each, up to 5 per product).
 
-## Quick start
+Prices are shown in **ZAR (R)**.
+
+## Accounts & roles
+
+- **Customer** — self-registers at `/Account/Register`. Can browse the shop, view product details/galleries, add to cart, and edit their own profile.
+- **Admin** — full access: manage products (multi-image upload, description, price, stock), view all customers, process the order/inventory queues, and view logs.
+
+A default Admin account is seeded automatically the first time the app runs against a configured storage account:
+
+```
+Email:    admin@abcretail.local
+Password: Admin@12345
+```
+
+Change this password (or delete/recreate the row in the `Customers` table) before sharing the app.
+
+## Quick start (local testing — no Azure App Service deploy yet)
 
 ```bash
 cd AbcRetail
@@ -22,7 +38,9 @@ dotnet user-secrets set "AzureStorage:ConnectionString" "<your-storage-connectio
 dotnet run
 ```
 
-Open the HTTPS URL from the console (see `Properties/launchSettings.json`).
+Open the HTTPS URL from the console (see `Properties/launchSettings.json`). If another `dotnet run` is already using the port, stop it first (`Ctrl+C` in its terminal, or kill the process) before starting a new one.
+
+Test locally as both roles (register a customer, log in as the seeded admin) before deploying to Azure App Service.
 
 ## Azure setup
 

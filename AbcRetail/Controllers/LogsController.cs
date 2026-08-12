@@ -1,10 +1,12 @@
 using AbcRetail.Models;
 using AbcRetail.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AbcRetail.Controllers;
 
-/// <summary>Log files stored in Azure Files (share applogs, directory logs).</summary>
+/// <summary>Admin-only: log files stored in Azure Files (share applogs, directory logs).</summary>
+[Authorize(Roles = CustomerEntity.RoleAdmin)]
 public class LogsController : Controller
 {
     private readonly IFileStorageService _files;

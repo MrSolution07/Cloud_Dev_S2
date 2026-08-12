@@ -18,18 +18,49 @@
             <button class="nav-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav" aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">Menu</button>
             <div class="collapse navbar-collapse" id="mainNav">
                 <ul class="nav-links">
-                    <li><a asp-controller="Home" asp-action="Index">Home</a></li>
-                    <li><a asp-controller="Products" asp-action="Index">Shop</a></li>
-                    <li><a asp-controller="Orders" asp-action="Index">Cart</a></li>
-                    <li class="nav-dropdown dropdown">
-                        <a href="#" class="dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">Admin</a>
-                        <ul class="dropdown-menu admin-dropdown">
-                            <li><a class="dropdown-item" asp-controller="Products" asp-action="Manage">Manage products</a></li>
-                            <li><a class="dropdown-item" asp-controller="Customers" asp-action="Index">Customers</a></li>
-                            <li><a class="dropdown-item" asp-controller="Logs" asp-action="Index">System logs</a></li>
-                        </ul>
-                    </li>
-                    <li><a asp-controller="Home" asp-action="Privacy">About</a></li>
+                    @if (User.IsInRole("Admin"))
+                    {
+                        <li><a asp-controller="Home" asp-action="Index">Dashboard</a></li>
+                        <li><a asp-controller="Customers" asp-action="Index">Customers</a></li>
+                        <li><a asp-controller="Products" asp-action="Manage">Products</a></li>
+                        <li><a asp-controller="Orders" asp-action="Index">Orders</a></li>
+                        <li><a asp-controller="Logs" asp-action="Index">Logs</a></li>
+                    }
+                    else
+                    {
+                        <li><a asp-controller="Home" asp-action="Index">Home</a></li>
+                        <li><a asp-controller="Products" asp-action="Index">Shop</a></li>
+                        @if (User.Identity?.IsAuthenticated == true)
+                        {
+                            <li><a asp-controller="Orders" asp-action="Cart">Cart</a></li>
+                        }
+                        <li><a asp-controller="Home" asp-action="Privacy">About</a></li>
+                    }
+
+                    @if (User.Identity?.IsAuthenticated == true)
+                    {
+                        <li class="nav-dropdown dropdown">
+                            <a href="#" class="dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">@User.Identity!.Name</a>
+                            <ul class="dropdown-menu admin-dropdown">
+                                <li><a class="dropdown-item" asp-controller="Account" asp-action="Profile">My profile</a></li>
+                                @if (User.IsInRole("Admin"))
+                                {
+                                    <li><a class="dropdown-item" asp-controller="Products" asp-action="Index">View shop</a></li>
+                                }
+                                <li>
+                                    <form asp-controller="Account" asp-action="Logout" method="post">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="dropdown-item" style="background:none;border:none;width:100%;text-align:left;cursor:pointer;">Log out</button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </li>
+                    }
+                    else
+                    {
+                        <li><a asp-controller="Account" asp-action="Login">Log in</a></li>
+                        <li><a asp-controller="Account" asp-action="Register">Register</a></li>
+                    }
                 </ul>
             </div>
         </nav>
@@ -51,12 +82,24 @@
         <div class="footer-inner">
             <div>
                 <p class="footer-brand">ABC Retail</p>
-                <p class="footer-tag">Everyday essentials, delivered fast.</p>
+                <p class="footer-tag">@(User.IsInRole("Admin") ? "Azure Storage • Command Centre" : "Everyday essentials, delivered fast.")</p>
             </div>
             <div class="footer-links">
-                <a asp-controller="Products" asp-action="Index">Shop</a>
-                <a asp-controller="Orders" asp-action="Index">Cart</a>
-                <a asp-controller="Home" asp-action="Privacy">About</a>
+                @if (User.IsInRole("Admin"))
+                {
+                    <a asp-controller="Home" asp-action="Index">Dashboard</a>
+                    <a asp-controller="Orders" asp-action="Index">Orders</a>
+                    <a asp-controller="Logs" asp-action="Index">Logs</a>
+                }
+                else
+                {
+                    <a asp-controller="Products" asp-action="Index">Shop</a>
+                    @if (User.Identity?.IsAuthenticated == true)
+                    {
+                        <a asp-controller="Orders" asp-action="Cart">Cart</a>
+                    }
+                    <a asp-controller="Home" asp-action="Privacy">About</a>
+                }
             </div>
         </div>
         <p class="footer-copy">© @DateTime.UtcNow.Year ABC Retail. All rights reserved.</p>

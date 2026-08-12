@@ -1,21 +1,20 @@
 @model AbcRetail.Models.OrdersIndexViewModel
 @{
-    ViewData["Title"] = "Cart & orders";
+    ViewData["Title"] = "Admin · Orders";
+    var resolveBlobUrl = ViewBag.BlobUrlResolver as Func<string, string>;
 
-    static (string Kind, string Product, string Image, string Extra) ParseMessage(string text)
+    static (string Kind, string Product, string Image, string Email, string Extra) ParseMessage(string text)
     {
         var parts = text.Split('|');
         var kind = parts.Length > 0 ? parts[0] : text;
         var product = parts.Length > 2 ? parts[2] : text;
-        // Order: Processing order|id|name|image|utc
+        var isInventory = kind.StartsWith("Inventory", StringComparison.OrdinalIgnoreCase);
+        // Order:     Processing order|id|name|image|email|utc
         // Inventory: Inventory update|id|name|stock|image|utc
-        var image = kind.StartsWith("Inventory", StringComparison.OrdinalIgnoreCase)
-            ? (parts.Length > 4 ? parts[4] : "none")
-            : (parts.Length > 3 ? parts[3] : "none");
-        var extra = kind.StartsWith("Inventory", StringComparison.OrdinalIgnoreCase) && parts.Length > 3
-            ? $"stock={parts[3]}"
-            : "";
-        return (kind, product, image, extra);
+        var image = isInventory ? (parts.Length > 4 ? parts[4] : "none") : (parts.Length > 3 ? parts[3] : "none");
+        var email = isInventory ? "" : (parts.Length > 4 ? parts[4] : "");
+        var extra = isInventory && parts.Length > 3 ? $"stock={parts[3]}" : "";
+        return (kind, product, image, email, extra);
     }
 }
 
@@ -33,7 +32,7 @@
 
     @if (!Model.PeekedOrderMessages.Any())
     {
-        <p>No orders yet — head to the <a asp-controller="Products" asp-action="Index">shop</a> to place one.</p>
+        <p>No orders yet.</p>
     }
     else
     {
@@ -41,10 +40,15 @@
         @foreach (var m in Model.PeekedOrderMessages)
         {
             var parsed = ParseMessage(m.MessageText);
+            var thumbUrl = parsed.Image != "none" && resolveBlobUrl is not null ? resolveBlobUrl(parsed.Image) : null;
             <div class="order-card">
+                @if (thumbUrl is not null)
+                {
+                    <img class="product-thumb" src="@thumbUrl" alt="@parsed.Product" loading="lazy" />
+                }
                 <div>
                     <strong>@parsed.Product</strong>
-                    <div class="text-muted small">imageName: <code>@parsed.Image</code></div>
+                    <div class="text-muted small">customer: @(string.IsNullOrWhiteSpace(parsed.Email) ? "—" : parsed.Email) · imageName: <code>@parsed.Image</code></div>
                     <div class="text-muted small"><code>@m.MessageText</code></div>
                     <div class="text-muted small">Placed @m.InsertedOn</div>
                 </div>
@@ -69,7 +73,12 @@
         @foreach (var m in Model.PeekedInventoryMessages)
         {
             var parsed = ParseMessage(m.MessageText);
+            var thumbUrl = parsed.Image != "none" && resolveBlobUrl is not null ? resolveBlobUrl(parsed.Image) : null;
             <div class="order-card">
+                @if (thumbUrl is not null)
+                {
+                    <img class="product-thumb" src="@thumbUrl" alt="@parsed.Product" loading="lazy" />
+                }
                 <div>
                     <strong>@parsed.Product</strong>
                     <div class="text-muted small">imageName: <code>@parsed.Image</code> @parsed.Extra</div>

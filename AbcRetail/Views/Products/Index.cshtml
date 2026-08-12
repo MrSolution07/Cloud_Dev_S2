@@ -19,7 +19,7 @@
             @foreach (var p in Model)
             {
                 <article class="product-card">
-                    <div class="product-card-media">
+                    <a asp-action="Details" asp-route-rowKey="@p.RowKey" class="product-card-media">
                         @if (!string.IsNullOrWhiteSpace(p.ImageUrl))
                         {
                             <img src="@p.ImageUrl" alt="@p.Name" loading="lazy" />
@@ -36,19 +36,28 @@
                         {
                             <span class="stock-badge low">Only @p.Stock left</span>
                         }
-                    </div>
+                    </a>
                     <div class="product-card-body">
-                        <h3>@p.Name</h3>
+                        <h3><a asp-action="Details" asp-route-rowKey="@p.RowKey">@p.Name</a></h3>
                         @if (!string.IsNullOrWhiteSpace(p.Description))
                         {
                             <p class="product-card-desc">@p.Description</p>
                         }
                         <p class="product-card-price">@p.Price.ToString("C")</p>
-                        <form asp-controller="Orders" asp-action="Enqueue" method="post">
-                            @Html.AntiForgeryToken()
-                            <input type="hidden" name="productRowKey" value="@p.RowKey" />
-                            <button type="submit" class="btn-accent" style="width:100%;" @(p.Stock <= 0 ? "disabled" : "")>Add to cart</button>
-                        </form>
+                        @if (User.Identity?.IsAuthenticated == true)
+                        {
+                            <form asp-controller="Orders" asp-action="Enqueue" method="post">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="productRowKey" value="@p.RowKey" />
+                                <button type="submit" class="btn-accent" style="width:100%;" @(p.Stock <= 0 ? "disabled" : "")>Add to cart</button>
+                            </form>
+                        }
+                        else
+                        {
+                            <a class="btn-accent" style="width:100%;text-align:center;"
+                               asp-controller="Account" asp-action="Login"
+                               asp-route-returnUrl="@Url.Action("Details", "Products", new { rowKey = p.RowKey })">Log in to buy</a>
+                        }
                     </div>
                 </article>
             }

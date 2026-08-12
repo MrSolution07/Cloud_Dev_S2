@@ -1,0 +1,44 @@
+@model IReadOnlyList<AbcRetail.Models.OrderMessageViewModel>
+@{
+    ViewData["Title"] = "My cart";
+    var resolveBlobUrl = ViewBag.BlobUrlResolver as Func<string, string>;
+
+    static (string Product, string Image) ParseOrder(string text)
+    {
+        var parts = text.Split('|');
+        var product = parts.Length > 2 ? parts[2] : text;
+        var image = parts.Length > 3 ? parts[3] : "none";
+        return (product, image);
+    }
+}
+
+<section class="glass-panel">
+    <h1 class="section-title">My orders</h1>
+    <p class="section-lead">Orders you have placed — an admin marks them processed after packing.</p>
+
+    @if (!Model.Any())
+    {
+        <p>No orders yet — head to the <a asp-controller="Products" asp-action="Index">shop</a> to place one.</p>
+    }
+    else
+    {
+        <div class="order-list">
+        @foreach (var m in Model)
+        {
+            var parsed = ParseOrder(m.MessageText);
+            var thumbUrl = parsed.Image != "none" && resolveBlobUrl is not null ? resolveBlobUrl(parsed.Image) : null;
+            <div class="order-card">
+                @if (thumbUrl is not null)
+                {
+                    <img class="product-thumb" src="@thumbUrl" alt="@parsed.Product" loading="lazy" />
+                }
+                <div>
+                    <strong>@parsed.Product</strong>
+                    <div class="text-muted small">Placed @m.InsertedOn</div>
+                </div>
+                <span class="pill">Processing</span>
+            </div>
+        }
+        </div>
+    }
+</section>

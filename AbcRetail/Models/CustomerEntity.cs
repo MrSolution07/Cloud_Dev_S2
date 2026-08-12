@@ -4,9 +4,13 @@ using System.ComponentModel.DataAnnotations;
 
 namespace AbcRetail.Models;
 
+/// <summary>Customer/Admin login profile stored in Azure Table Storage (Customers table, partition USER).</summary>
 public class CustomerEntity : ITableEntity
 {
-    public string PartitionKey { get; set; } = "CUSTOMER";
+    public const string RoleCustomer = "Customer";
+    public const string RoleAdmin = "Admin";
+
+    public string PartitionKey { get; set; } = "USER";
     public string RowKey { get; set; } = Guid.NewGuid().ToString("N");
     public DateTimeOffset? Timestamp { get; set; }
     public ETag ETag { get; set; }
@@ -25,4 +29,11 @@ public class CustomerEntity : ITableEntity
 
     [StringLength(120)]
     public string? City { get; set; }
+
+    // Hashed with PasswordHasher<CustomerEntity>; empty for legacy rows created before auth existed.
+    public string PasswordHash { get; set; } = string.Empty;
+
+    public string Role { get; set; } = RoleCustomer;
+
+    public static string NormalizeEmail(string email) => email.Trim().ToLowerInvariant();
 }

@@ -7,9 +7,9 @@
     <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
         <div>
             <h1 class="section-title">Customers</h1>
-            <p class="section-lead">@Model.Count customer(s) on file</p>
+            <p class="section-lead">@Model.Count account(s) in Azure Table Storage</p>
         </div>
-        <a class="btn-accent" asp-action="Create">Add customer</a>
+        <a class="btn-accent" asp-action="Create">Add Customer</a>
     </div>
 
     <table class="data-table">
@@ -17,6 +17,7 @@
             <tr>
                 <th>Name</th>
                 <th>Email</th>
+                <th>Role</th>
                 <th>Phone</th>
                 <th>City</th>
                 <th></th>
@@ -27,14 +28,15 @@
         {
             <tr>
                 <td>
-                    <span class="avatar-initial">@c.FirstName[0]@c.LastName[0]</span>
+                    <span class="avatar-initial">@(c.FirstName.Length > 0 ? c.FirstName[0] : '?')@(c.LastName.Length > 0 ? c.LastName[0] : '?')</span>
                     @c.FirstName @c.LastName
                 </td>
                 <td>@c.Email</td>
+                <td><span class="pill">@c.Role</span></td>
                 <td>@(c.Phone ?? "—")</td>
                 <td>@(c.City ?? "—")</td>
                 <td>
-                    <form asp-action="Delete" method="post" onsubmit="return confirm('Delete this customer?');">
+                    <form asp-action="Delete" method="post" onsubmit="return confirm('Delete this account?');">
                         @Html.AntiForgeryToken()
                         <input type="hidden" name="rowKey" value="@c.RowKey" />
                         <button type="submit" class="btn-danger">Delete</button>

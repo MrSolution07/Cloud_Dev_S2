@@ -1,0 +1,37 @@
+@model AbcRetail.Models.LoginViewModel
+@{
+    ViewData["Title"] = "Log in";
+}
+
+<section class="glass-panel" style="max-width:420px;margin:0 auto;">
+    <h1 class="section-title">Log in</h1>
+    <p class="section-lead">Customers shop and buy. Admins manage products, customers, queues, and logs.</p>
+
+    <form asp-action="Login" method="post" class="form-grid">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="ReturnUrl" />
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <label>
+            Email
+            <input asp-for="Email" autocomplete="username" placeholder="you@email.com" />
+            <span asp-validation-for="Email" class="text-danger"></span>
+        </label>
+        <label>
+            Password
+            <input asp-for="Password" autocomplete="current-password" />
+            <span asp-validation-for="Password" class="text-danger"></span>
+        </label>
+        <div class="cta-row">
+            <button type="submit" class="btn-accent">Log in</button>
+            <a class="btn-ghost" asp-action="Register">Create an account</a>
+        </div>
+    </form>
+
+    <p class="section-lead" style="margin-top:1.25rem;margin-bottom:0;font-size:0.9rem;">
+        <strong>Admin (seeded):</strong> <code>admin&#64;abcretail.local</code> / <code>Admin&#64;12345</code>
+    </p>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

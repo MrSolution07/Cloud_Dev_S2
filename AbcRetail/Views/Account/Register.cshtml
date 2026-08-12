@@ -1,14 +1,15 @@
-@model AbcRetail.Models.AdminCustomerCreateViewModel
+@model AbcRetail.Models.RegisterViewModel
 @{
-    ViewData["Title"] = "Add Customer";
+    ViewData["Title"] = "Create account";
 }
 
 <section class="glass-panel" style="max-width:520px;margin:0 auto;">
-    <h1 class="section-title">Add Customer</h1>
-    <p class="section-lead">Create a profile in Azure Table Storage (Customers table).</p>
+    <h1 class="section-title">Create your account</h1>
+    <p class="section-lead">Your profile is stored in Azure Table Storage. Once registered you can add items to your cart and buy.</p>
 
-    <form asp-action="Create" method="post" class="form-grid">
+    <form asp-action="Register" method="post" class="form-grid">
         @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="ReturnUrl" />
         <div asp-validation-summary="ModelOnly" class="text-danger"></div>
         <label>
             First name
@@ -34,13 +35,6 @@
             <input asp-for="City" />
         </label>
         <label>
-            Role
-            <select asp-for="Role">
-                <option value="Customer">Customer</option>
-                <option value="Admin">Admin</option>
-            </select>
-        </label>
-        <label>
             Password
             <input asp-for="Password" />
             <span asp-validation-for="Password" class="text-danger"></span>
@@ -51,8 +45,8 @@
             <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
         </label>
         <div class="cta-row">
-            <button type="submit" class="btn-accent">Save customer</button>
-            <a class="btn-ghost" asp-action="Index">Back to list</a>
+            <button type="submit" class="btn-accent">Create account</button>
+            <a class="btn-ghost" asp-action="Login">Already have an account?</a>
         </div>
     </form>
 </section>

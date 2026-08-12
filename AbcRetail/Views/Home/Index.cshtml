@@ -4,13 +4,28 @@
     var ready = ViewBag.StorageReady as bool? ?? false;
 }
 
-<section class="hero">
+<section class="hero hero-water">
     <p class="pill">New season arrivals</p>
     <h1 class="brand-mark">ABC Retail</h1>
-    <p>Everyday essentials and standout finds, picked for quality and priced to make sense. Shop the catalog and check out in seconds.</p>
+    <p>Everyday essentials and standout finds, picked for quality and priced in Rand. Shop the catalog and check out in seconds.</p>
     <div class="cta-row">
         <a class="btn-accent" asp-controller="Products" asp-action="Index">Shop now</a>
-        <a class="btn-ghost" asp-controller="Orders" asp-action="Index">Track my orders</a>
+        @if (User.Identity?.IsAuthenticated == true)
+        {
+            @if (User.IsInRole("Admin"))
+            {
+                <a class="btn-ghost" asp-controller="Products" asp-action="Manage">Manage catalog</a>
+            }
+            else
+            {
+                <a class="btn-ghost" asp-controller="Orders" asp-action="Cart">My cart</a>
+            }
+        }
+        else
+        {
+            <a class="btn-ghost" asp-controller="Account" asp-action="Login">Customer login</a>
+            <a class="btn-ghost" asp-controller="Account" asp-action="Login" asp-route-returnUrl="/Products/Manage">Admin login</a>
+        }
     </div>
 
     @if (!ready)
@@ -55,7 +70,7 @@
         <div class="product-grid">
             @foreach (var p in Model)
             {
-                <article class="product-card">
+                <a asp-controller="Products" asp-action="Details" asp-route-rowKey="@p.RowKey" class="product-card" style="text-decoration:none;color:inherit;">
                     <div class="product-card-media">
                         @if (!string.IsNullOrWhiteSpace(p.ImageUrl))
                         {
@@ -70,7 +85,7 @@
                         <h3>@p.Name</h3>
                         <p class="product-card-price">@p.Price.ToString("C")</p>
                     </div>
-                </article>
+                </a>
             }
         </div>
     </section>
