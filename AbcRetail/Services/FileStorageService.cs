@@ -113,29 +113,16 @@ public sealed class FileStorageService : IFileStorageService
             throw new InvalidOperationException("Invalid file name.");
         }
 
-        if (!safeName.EndsWith(".log", StringComparison.OrdinalIgnoreCase))
-        {
-            safeName += ".log";
-        }
-
-        var bytes = Encoding.UTF8.GetBytes(content);
-        var dir = Share.GetDirectoryClient(_directoryName);
-        var file = dir.GetFileClient(safeName);
-
+        var existing = string.Empty;
+        var file = Share.GetDirectoryClient(_directoryName).GetFileClient(safeName);
         if (await file.ExistsAsync(ct))
         {
-            ShareFileProperties props = await file.GetPropertiesAsync(cancellationToken: ct);
-            var offset = props.Value.ContentLength;
-            await file.ResizeAsync(offset + bytes.Length, cancellationToken: ct);
-            using var stream = new MemoryStream(bytes);
-            await file.UploadRangeAsync(new HttpRange(offset, bytes.Length), stream, cancellationToken: ct);
+            ShareFileDownloadInfo download = await file.DownloadAsync(cancellationToken: ct);
+            using var reader = new StreamReader(download.Content, Encoding.UTF8);
+            existing = await reader.ReadToEndAsync(ct);
         }
-        else
-        {
-            await file.CreateAsync(bytes.Length, cancellationToken: ct);
-            using var stream = new MemoryStream(bytes);
-            await file.UploadRangeAsync(new HttpRange(0, bytes.Length), stream, cancellationToken: ct);
-        }
+
+        await WriteLogAsync(safeName, existing + content, ct);
     }
 
     public async Task ClearLogsAsync(CancellationToken ct = default)

@@ -4,12 +4,14 @@
 
 ASP.NET Core MVC app for **ABC Retail** using all four Azure Storage services:
 
-| Service | Feature |
-|---------|---------|
-| Azure Tables | Customer/Admin login profiles (Customers table) + Products |
-| Azure Blob Storage | Product images — multiple per product (`product-images`) |
-| Azure Queues | Orders (`order-processing`) + inventory (`inventory-management`) |
-| Azure Files | Log files (`applogs` / `logs`) |
+
+| Service            | Feature                                                          |
+| ------------------ | ---------------------------------------------------------------- |
+| Azure Tables       | Customer/Admin login profiles (Customers table) + Products       |
+| Azure Blob Storage | Product images — multiple per product (`product-images`)         |
+| Azure Queues       | Orders (`order-processing`) + inventory (`inventory-management`) |
+| Azure Files        | Log files (`applogs` / `logs`)                                   |
+
 
 UI: liquid-glass outdoor look (CSS glassmorphism; kayak sites as visual inspiration only — catalog stays general retail), lightweight images (≤1 MB each, up to 5 per product).
 
@@ -44,7 +46,7 @@ Test locally as both roles (register a customer, log in as the seeded admin) bef
 
 ## Azure setup
 
-Step-by-step portal + CLI guides live in [`docs/azure/`](docs/azure/00-overview.md).
+Step-by-step portal + CLI guides live in `[docs/azure/](docs/azure/00-overview.md)`.
 
 **Must use StorageV2** (general-purpose v2), not a Blob-only account.
 
@@ -55,15 +57,17 @@ AbcRetail/          MVC web app (.NET 10)
 docs/azure/         How to create Azure resources
 ```
 
+
+
 ## Deploy
 
-See [`docs/azure/07-app-service-deploy.md`](docs/azure/07-app-service-deploy.md).
+See `[docs/azure/07-app-service-deploy.md](docs/azure/07-app-service-deploy.md)`.
 
 App Setting name: `AzureStorage__ConnectionString`
 
 ## Submission
 
-See [`docs/azure/09-screenshot-checklist.md`](docs/azure/09-screenshot-checklist.md) for rubric screenshots (≥5 records per service).
+See `[docs/azure/09-screenshot-checklist.md](docs/azure/09-screenshot-checklist.md)` for rubric screenshots (≥5 records per service).
 
 ## Note on target framework
 
