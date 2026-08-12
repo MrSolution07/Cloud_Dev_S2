@@ -83,7 +83,7 @@ public class AccountController : Controller
             return View("~/Views/Shared/StorageNotConfigured.cshtml", _gate.MissingReason);
         }
 
-        // Already signed in → send straight to role home (avoids weird re-login / AccessDenied loops).
+        // Already signed in --> send straight to role home (avoids weird re-login).
         if (User.Identity?.IsAuthenticated == true)
         {
             return RedirectToRoleHome(User.IsInRole(CustomerEntity.RoleAdmin));
