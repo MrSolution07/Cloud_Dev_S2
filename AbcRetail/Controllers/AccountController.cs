@@ -71,7 +71,7 @@ public class AccountController : Controller
         await SignInAsync(entity);
         await _files.WriteActivityAsync("Register", entity.Email, $"role={entity.Role} city={entity.City}", ct);
 
-        TempData["Status"] = "Welcome to ABC Retail — your profile is saved in Azure Table Storage.";
+        TempData["Status"] = "Welcome to ABC Retail — your profile is saved !";
         return RedirectAfterAuth(entity, model.ReturnUrl);
     }
 
