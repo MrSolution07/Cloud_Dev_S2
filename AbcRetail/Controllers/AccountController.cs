@@ -14,12 +14,14 @@ public class AccountController : Controller
 {
     private readonly ITableStorageService _tables;
     private readonly IAzureStorageGate _gate;
+    private readonly IFileStorageService _files;
     private readonly PasswordHasher<CustomerEntity> _hasher = new();
 
-    public AccountController(ITableStorageService tables, IAzureStorageGate gate)
+    public AccountController(ITableStorageService tables, IAzureStorageGate gate, IFileStorageService files)
     {
         _tables = tables;
         _gate = gate;
+        _files = files;
     }
 
     [HttpGet]
@@ -67,6 +69,7 @@ public class AccountController : Controller
 
         await _tables.AddCustomerAsync(entity, ct);
         await SignInAsync(entity);
+        await _files.WriteActivityAsync("Register", entity.Email, $"role={entity.Role} city={entity.City}", ct);
 
         TempData["Status"] = "Welcome to ABC Retail — your profile is saved in Azure Table Storage.";
         return RedirectAfterAuth(entity, model.ReturnUrl);
@@ -106,6 +109,7 @@ public class AccountController : Controller
         var user = await _tables.GetUserByEmailAsync(model.Email, ct);
         if (user is null || string.IsNullOrEmpty(user.PasswordHash))
         {
+            await _files.WriteActivityAsync("LoginFail", model.Email, "unknown user or missing password hash", ct);
             ModelState.AddModelError(string.Empty, "Invalid email or password.");
             return View(model);
         }
@@ -113,11 +117,13 @@ public class AccountController : Controller
         var result = _hasher.VerifyHashedPassword(user, user.PasswordHash, model.Password);
         if (result == PasswordVerificationResult.Failed)
         {
+            await _files.WriteActivityAsync("LoginFail", model.Email, "bad password", ct);
             ModelState.AddModelError(string.Empty, "Invalid email or password.");
             return View(model);
         }
 
         await SignInAsync(user);
+        await _files.WriteActivityAsync("Login", user.Email, $"role={user.Role}", ct);
         return RedirectAfterAuth(user, model.ReturnUrl);
     }
 
@@ -131,9 +137,11 @@ public class AccountController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Logout()
+    public async Task<IActionResult> Logout(CancellationToken ct)
     {
+        var email = User.Identity?.Name;
         await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+        await _files.WriteActivityAsync("Logout", email, "signed out", ct);
         return RedirectToAction("Index", "Home");
     }
 
@@ -191,6 +199,7 @@ public class AccountController : Controller
         user.Phone = model.Phone;
         user.City = model.City;
         await _tables.UpdateCustomerAsync(user, ct);
+        await _files.WriteActivityAsync("ProfileUpdate", email, $"name={user.FirstName} {user.LastName} city={user.City}", ct);
 
         TempData["Status"] = "Profile updated.";
         return RedirectToAction(nameof(Profile));

@@ -5,7 +5,7 @@
 
 <section class="glass-panel">
     <h1 class="section-title">System logs</h1>
-    <p class="section-lead">@Model.Files.Count log file(s) on record</p>
+    <p class="section-lead">@Model.Files.Count log file(s) on record — activity traces register, login, cart, products, and admin actions.</p>
 
     <form asp-action="Create" method="post" class="form-grid">
         @Html.AntiForgeryToken()
@@ -20,6 +20,12 @@
             <span asp-validation-for="Create.Content" class="text-danger"></span>
         </label>
         <button type="submit" class="btn-accent">Write log entry</button>
+    </form>
+
+    <form asp-action="Clear" method="post" class="form-grid" style="margin-top:1rem;"
+          onsubmit="return confirm('Delete ALL log files from Azure Files? This cannot be undone.');">
+        @Html.AntiForgeryToken()
+        <button type="submit" class="btn-glass" style="color:#8b1e1e;border-color:rgba(139,30,30,0.35);">Clear all logs</button>
     </form>
 </section>
 
@@ -46,7 +52,7 @@
         }
         @if (!Model.Files.Any())
         {
-            <tr><td colspan="3">No log files yet. Create one above or add customers/products/orders (they auto-log).</td></tr>
+            <tr><td colspan="3">No log files yet. Register, log in, add to cart, or manage products — those actions write activity logs.</td></tr>
         }
         </tbody>
     </table>

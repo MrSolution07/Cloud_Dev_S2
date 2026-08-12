@@ -16,7 +16,7 @@
         <nav class="glass-nav">
             <a class="brand" asp-controller="Home" asp-action="Index">ABC Retail</a>
             <button class="nav-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav" aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">Menu</button>
-            <div class="collapse navbar-collapse" id="mainNav">
+            <div class="collapse navbar-collapse nav-center" id="mainNav">
                 <ul class="nav-links">
                     @if (User.IsInRole("Admin"))
                     {
@@ -36,33 +36,34 @@
                         }
                         <li><a asp-controller="Home" asp-action="Privacy">About</a></li>
                     }
-
-                    @if (User.Identity?.IsAuthenticated == true)
-                    {
-                        <li class="nav-dropdown dropdown">
-                            <a href="#" class="dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">@User.Identity!.Name</a>
-                            <ul class="dropdown-menu admin-dropdown">
-                                <li><a class="dropdown-item" asp-controller="Account" asp-action="Profile">My profile</a></li>
-                                @if (User.IsInRole("Admin"))
-                                {
-                                    <li><a class="dropdown-item" asp-controller="Products" asp-action="Index">View shop</a></li>
-                                }
-                                <li>
-                                    <form asp-controller="Account" asp-action="Logout" method="post">
-                                        @Html.AntiForgeryToken()
-                                        <button type="submit" class="dropdown-item" style="background:none;border:none;width:100%;text-align:left;cursor:pointer;">Log out</button>
-                                    </form>
-                                </li>
-                            </ul>
-                        </li>
-                    }
-                    else
-                    {
-                        <li><a asp-controller="Account" asp-action="Login">Log in</a></li>
-                        <li><a asp-controller="Account" asp-action="Register">Register</a></li>
-                    }
                 </ul>
             </div>
+            <ul class="nav-auth">
+                @if (User.Identity?.IsAuthenticated == true)
+                {
+                    <li class="nav-dropdown dropdown">
+                        <a href="#" class="dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">@User.Identity!.Name</a>
+                        <ul class="dropdown-menu admin-dropdown">
+                            <li><a class="dropdown-item" asp-controller="Account" asp-action="Profile">My profile</a></li>
+                            @if (User.IsInRole("Admin"))
+                            {
+                                <li><a class="dropdown-item" asp-controller="Products" asp-action="Index">View shop</a></li>
+                            }
+                            <li>
+                                <form asp-controller="Account" asp-action="Logout" method="post">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="dropdown-item" style="background:none;border:none;width:100%;text-align:left;cursor:pointer;">Log out</button>
+                                </form>
+                            </li>
+                        </ul>
+                    </li>
+                }
+                else
+                {
+                    <li><a asp-controller="Account" asp-action="Login">Log in</a></li>
+                    <li><a asp-controller="Account" asp-action="Register">Register</a></li>
+                }
+            </ul>
         </nav>
     </header>
 

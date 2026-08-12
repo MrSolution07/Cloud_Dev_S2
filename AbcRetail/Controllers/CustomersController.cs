@@ -82,9 +82,10 @@ public class CustomersController : Controller
         entity.PasswordHash = _hasher.HashPassword(entity, model.Password);
 
         await _tables.AddCustomerAsync(entity, ct);
-        await _files.WriteLogAsync(
-            $"customer-{DateTime.UtcNow:yyyyMMdd-HHmmss}.log",
-            $"Admin created {role} {entity.Email} at {DateTime.UtcNow:O}",
+        await _files.WriteActivityAsync(
+            "CustomerCreate",
+            User.Identity?.Name,
+            $"created={entity.Email} role={role}",
             ct);
 
         TempData["Status"] = $"Customer saved to Table Storage ({role}).";

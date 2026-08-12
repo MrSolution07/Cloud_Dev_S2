@@ -126,9 +126,10 @@ public class ProductsController : Controller
         }
 
         await _tables.AddProductAsync(entity, ct);
-        await _files.WriteLogAsync(
-            $"product-{DateTime.UtcNow:yyyyMMdd-HHmmss}.log",
-            $"Created product {entity.Name} images={uploaded.Count} at {DateTime.UtcNow:O}",
+        await _files.WriteActivityAsync(
+            "ProductCreate",
+            User.Identity?.Name,
+            $"name={entity.Name} images={uploaded.Count} price={entity.Price} stock={entity.Stock}",
             ct);
         TempData["Status"] = "Product saved to Table Storage; images stored in Blob Storage.";
         return RedirectToAction(nameof(Manage));

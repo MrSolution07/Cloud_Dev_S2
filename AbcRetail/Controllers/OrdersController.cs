@@ -88,17 +88,19 @@ public class OrdersController : Controller
         }
 
         var product = await _tables.GetProductAsync(productRowKey, ct);
+        var email = User.Identity?.Name ?? "unknown";
         if (product is null)
         {
+            await _files.WriteActivityAsync("CartAddFail", email, $"productRowKey={productRowKey} reason=not_found", ct);
             TempData["Error"] = "Product not found.";
             return RedirectToAction("Index", "Products");
         }
 
-        var email = User.Identity?.Name ?? "unknown";
         await _queues.SendOrderMessageAsync(product.RowKey, product.Name, product.PrimaryImageBlobName, email, ct);
-        await _files.WriteLogAsync(
-            $"order-{DateTime.UtcNow:yyyyMMdd-HHmmss}.log",
-            $"Queued Processing order for {product.Name} ({product.RowKey}) image={product.PrimaryImageBlobName ?? "none"} customer={email}",
+        await _files.WriteActivityAsync(
+            "CartAdd",
+            email,
+            $"product={product.Name} id={product.RowKey} image={product.PrimaryImageBlobName ?? "none"}",
             ct);
         TempData["Status"] = "Order message sent to Azure Queue (order-processing).";
         return RedirectToAction(nameof(Cart));
@@ -142,9 +144,10 @@ public class OrdersController : Controller
             product?.PrimaryImageBlobName ?? (imageName == "none" ? null : imageName),
             ct);
 
-        await _files.WriteLogAsync(
-            $"inventory-{DateTime.UtcNow:yyyyMMdd-HHmmss}.log",
-            $"Processed order → inventory update product={productId} stock={newStock} image={imageName}",
+        await _files.WriteActivityAsync(
+            "OrderProcess",
+            User.Identity?.Name,
+            $"product={productId} name={productName} stock={newStock} image={imageName}",
             ct);
 
         TempData["Status"] = $"Dequeued: {message.MessageText}. Inventory message queued (stock={newStock}).";
