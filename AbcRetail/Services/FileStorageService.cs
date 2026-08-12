@@ -92,16 +92,49 @@ public sealed class FileStorageService : IFileStorageService
         try
         {
             var safeAction = SanitizeAction(action);
-            var stamp = DateTime.UtcNow.ToString("yyyyMMdd-HHmmss-fff");
-            var shortGuid = Guid.NewGuid().ToString("N")[..8];
-            var fileName = $"activity-{stamp}-{safeAction}-{shortGuid}.log";
-            var body =
-                $"[{DateTime.UtcNow:O}] action={safeAction} user={user ?? "anonymous"} detail={detail}";
-            await WriteLogAsync(fileName, body, ct);
+            var fileName = $"activity-{DateTime.UtcNow:yyyy-MM-dd}.log"; // Good formating -- this was the format Sir liked with time stamp
+            var line =
+                $"[{DateTime.UtcNow:O}] action={safeAction} user={user ?? "anonymous"} detail={detail}{Environment.NewLine}";
+            await AppendLogAsync(fileName, line, ct);
         }
         catch
         {
             // Activity logging must never break register/login/cart/admin flows.
+        }
+    }
+
+    /// <summary>Append a line to a daily log file (create if missing). Old per-event files stay untouched.</summary>
+    private async Task AppendLogAsync(string fileName, string content, CancellationToken ct)
+    {
+        await EnsureInitializedAsync(ct);
+        var safeName = Path.GetFileName(fileName);
+        if (string.IsNullOrWhiteSpace(safeName))
+        {
+            throw new InvalidOperationException("Invalid file name.");
+        }
+
+        if (!safeName.EndsWith(".log", StringComparison.OrdinalIgnoreCase))
+        {
+            safeName += ".log";
+        }
+
+        var bytes = Encoding.UTF8.GetBytes(content);
+        var dir = Share.GetDirectoryClient(_directoryName);
+        var file = dir.GetFileClient(safeName);
+
+        if (await file.ExistsAsync(ct))
+        {
+            ShareFileProperties props = await file.GetPropertiesAsync(cancellationToken: ct);
+            var offset = props.Value.ContentLength;
+            await file.ResizeAsync(offset + bytes.Length, cancellationToken: ct);
+            using var stream = new MemoryStream(bytes);
+            await file.UploadRangeAsync(new HttpRange(offset, bytes.Length), stream, cancellationToken: ct);
+        }
+        else
+        {
+            await file.CreateAsync(bytes.Length, cancellationToken: ct);
+            using var stream = new MemoryStream(bytes);
+            await file.UploadRangeAsync(new HttpRange(0, bytes.Length), stream, cancellationToken: ct);
         }
     }
 
