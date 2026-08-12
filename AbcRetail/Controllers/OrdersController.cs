@@ -102,7 +102,7 @@ public class OrdersController : Controller
             email,
             $"product={product.Name} id={product.RowKey} image={product.PrimaryImageBlobName ?? "none"}",
             ct);
-        TempData["Status"] = "Order message sent to Azure Queue (order-processing).";
+        TempData["Status"] = "Order message sent!(order-processing).";
         return RedirectToAction(nameof(Cart));
     }
 
