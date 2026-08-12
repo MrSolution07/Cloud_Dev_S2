@@ -21,11 +21,12 @@
                 <a class="btn-ghost" asp-controller="Orders" asp-action="Cart">My cart</a>
             }
         }
-        else
+        <!-- I don't need this since now I will be using the nav bar to log in  -->
+        <!-- else
         {
             <a class="btn-ghost" asp-controller="Account" asp-action="Login">Customer login</a>
             <a class="btn-ghost" asp-controller="Account" asp-action="Login" asp-route-returnUrl="/Products/Manage">Admin login</a>
-        }
+        } -->
     </div>
 
     @if (!ready)
