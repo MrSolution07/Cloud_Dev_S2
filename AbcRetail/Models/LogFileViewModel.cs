@@ -12,6 +12,7 @@ public class LogFileViewModel
 public class CreateLogViewModel
 {
     [Required, StringLength(80)]
+    // I should simplify this regex so that it's easier to undersand and maintain fo part
     [RegularExpression(@"^[a-zA-Z0-9_\-\.]+$", ErrorMessage = "Use letters, numbers, dash, underscore, or dot only.")]
     public string FileName { get; set; } = string.Empty;
 
