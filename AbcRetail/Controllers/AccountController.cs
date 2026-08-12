@@ -242,8 +242,6 @@ public class AccountController : Controller
             || path.StartsWith("/Account/AccessDenied", StringComparison.OrdinalIgnoreCase);
     }
 
-    // Avoid sending a customer to an Admin-only ReturnUrl (AccessDenied) or an admin to Cart by accident.
-    // Never redirect to POST-only actions (Enqueue/Dequeue/Delete) — browser would GET them → 404.
     private static bool RoleCanOpen(string returnUrl, bool isAdmin)
     {
         var path = returnUrl.Split('?', '#')[0];
