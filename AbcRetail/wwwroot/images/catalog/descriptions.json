@@ -1,0 +1,62 @@
+[
+  {
+    "file": "iphone-17-pro-max.jpg",
+    "category": "Apple",
+    "name": "iPhone 17 Pro Max",
+    "description": "Apple flagship. Large Super Retina display, A19 Pro chip, titanium frame, triple-camera system. All-day battery. Built for pro photo, video, and everyday use."
+  },
+  {
+    "file": "samsung-galaxy-s25-ultra.jpg",
+    "category": "Samsung",
+    "name": "Samsung Galaxy S25 Ultra",
+    "description": "Samsung flagship. Bright AMOLED display, S Pen, titanium build, 200 MP camera. Long battery life and desktop-class multitasking on Android."
+  },
+  {
+    "file": "samsung-galaxy-z-fold.jpg",
+    "category": "Samsung",
+    "name": "Samsung Galaxy Z Fold",
+    "description": "Foldable phone that opens into a tablet. Inner AMOLED canvas for split-screen apps, cover screen for one-hand use. Slim hinge, pocketable when closed."
+  },
+  {
+    "file": "samsung-galaxy-tab-s10.jpg",
+    "category": "Samsung",
+    "name": "Samsung Galaxy Tab S10",
+    "description": "Premium Android tablet. Slim aluminum body, high-refresh AMOLED, DeX desktop mode. Optional keyboard and S Pen for work and media."
+  },
+  {
+    "file": "apple-macbook-pro.jpg",
+    "category": "Apple",
+    "name": "MacBook Pro 16\"",
+    "description": "16-inch Liquid Retina XDR laptop. Apple silicon, studio-grade speakers, all-day battery. Built for code, video, and heavy creative work."
+  },
+  {
+    "file": "apple-ipad-pro.jpg",
+    "category": "Apple",
+    "name": "iPad Pro",
+    "description": "Ultra-thin tablet with OLED display and Apple silicon. Apple Pencil and Magic Keyboard ready. One device for sketch, edit, and stream."
+  },
+  {
+    "file": "apple-airpods-pro.jpg",
+    "category": "Apple",
+    "name": "AirPods Pro",
+    "description": "In-ear wireless earbuds with active noise cancellation, Adaptive Audio, and MagSafe charging case. Sweat resistant. One-tap pair with Apple devices."
+  },
+  {
+    "file": "google-pixel-10-pro.jpg",
+    "category": "Other",
+    "name": "Google Pixel 10 Pro",
+    "description": "Google flagship. Tensor chip, clean Android, pro camera bar, on-device AI editing. Seven years of OS updates. Simple, fast, camera-first phone."
+  },
+  {
+    "file": "sony-mirrorless-camera.jpg",
+    "category": "Other",
+    "name": "Sony Mirrorless Camera",
+    "description": "Compact full-frame style mirrorless body with kit lens. Fast autofocus, 4K video, flip screen. Travel-ready stills and video kit."
+  },
+  {
+    "file": "bluetooth-speaker.jpg",
+    "category": "Other",
+    "name": "Portable Bluetooth Speaker",
+    "description": "Compact wireless speaker. Deep bass, IP-rated shell, 12-hour battery, USB-C charge. Pair two for stereo. Desk, kitchen, or travel."
+  }
+]
