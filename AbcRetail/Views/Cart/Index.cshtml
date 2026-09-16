@@ -1,0 +1,70 @@
+@model AbcRetail.Models.CartViewModel
+@{
+    ViewData["Title"] = "Cart";
+}
+
+<section class="glass-panel">
+    <h1 class="section-title">Your cart</h1>
+    <p class="section-lead">Quantities are checked against live stock. Totals use the catalog price, not a client-side figure.</p>
+
+    @if (!Model.Lines.Any())
+    {
+        <p>Your cart is empty. Browse the <a asp-controller="Products" asp-action="Index">shop</a> to add products.</p>
+    }
+    else
+    {
+        <div class="order-list">
+            @foreach (var line in Model.Lines)
+            {
+                <div class="order-card">
+                    @if (!string.IsNullOrWhiteSpace(line.ImageUrl))
+                    {
+                        <img class="product-thumb" src="@line.ImageUrl" alt="@line.Name" loading="lazy" />
+                    }
+                    <div>
+                        <strong>@line.Name</strong>
+                        <div class="text-muted small">@line.UnitPrice.ToString("C") each</div>
+                        @if (line.Unavailable)
+                        {
+                            <span class="stock-badge out" style="position:static;display:inline-block;">Unavailable</span>
+                        }
+                        else if (line.QtyExceedsStock)
+                        {
+                            <span class="stock-badge low" style="position:static;display:inline-block;">Only @line.Stock in stock</span>
+                        }
+                    </div>
+                    <div class="cart-line-actions">
+                        <form asp-action="Update" method="post" class="qty-form">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="productRowKey" value="@line.ProductRowKey" />
+                            <label class="visually-hidden" for="qty-@line.ProductRowKey">Quantity</label>
+                            <input id="qty-@line.ProductRowKey" type="number" name="quantity" value="@line.Quantity" min="0" max="@(line.Stock > 0 ? line.Stock : 1)" @(line.Unavailable ? "disabled" : null) />
+                            <button type="submit" class="btn-glass" @(line.Unavailable ? "disabled" : null)>Update</button>
+                        </form>
+                        <form asp-action="Remove" method="post">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="productRowKey" value="@line.ProductRowKey" />
+                            <button type="submit" class="btn-danger">Remove</button>
+                        </form>
+                    </div>
+                    <strong>@line.LineTotal.ToString("C")</strong>
+                </div>
+            }
+        </div>
+        <div class="cart-totals">
+            <p>Subtotal <strong>@Model.Subtotal.ToString("C")</strong></p>
+            <p>Total <strong>@Model.Total.ToString("C")</strong></p>
+        </div>
+        <div class="cta-row">
+            @if (Model.CanCheckout)
+            {
+                <a class="btn-accent" asp-controller="Checkout" asp-action="Shipping">Checkout</a>
+            }
+            else
+            {
+                <p class="text-danger">Remove unavailable items or lower quantities before checkout.</p>
+            }
+            <a class="btn-ghost" asp-controller="Products" asp-action="Index">Continue shopping</a>
+        </div>
+    }
+</section>
