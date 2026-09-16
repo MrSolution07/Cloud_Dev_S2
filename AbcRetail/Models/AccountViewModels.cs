@@ -37,6 +37,13 @@ public class RegisterViewModel
     public string? ReturnUrl { get; set; }
 }
 
+public class CheckEmailViewModel
+{
+    public string Email { get; set; } = string.Empty;
+    public string? ConfirmUrl { get; set; }
+    public string? ReturnUrl { get; set; }
+}
+
 public class LoginViewModel
 {
     [Required, EmailAddress]

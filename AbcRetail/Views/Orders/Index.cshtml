@@ -22,7 +22,7 @@
     <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
         <div>
             <h1 class="section-title">Orders</h1>
-            <p class="section-lead">Durable orders in Azure Tables, plus the Phase 1 processing queues below.</p>
+            <p class="section-lead">Customer orders and fulfillment queues.</p>
         </div>
         <form method="get" class="qty-form">
             <input type="search" name="q" value="@Model.Query" placeholder="Email or order id" />
@@ -46,7 +46,7 @@
 
     @if (!Model.TableOrders.Any())
     {
-        <p>No table orders yet. Customer checkout writes rows here after a successful simulated payment.</p>
+        <p>No orders yet.</p>
     }
     else
     {
@@ -82,7 +82,7 @@
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
         <div>
             <h1 class="section-title">Order processing queue</h1>
-            <p class="section-lead">@Model.ApproximateOrderCount message(s) in <code>order-processing</code>.</p>
+            <p class="section-lead">@Model.ApproximateOrderCount waiting to process.</p>
         </div>
         <form asp-action="Dequeue" method="post" onsubmit="return confirm('Process oldest order? This updates inventory and queues an inventory message.');">
             @Html.AntiForgeryToken()
@@ -121,7 +121,7 @@
 
 <section class="glass-panel" style="margin-top:1.5rem;">
     <h1 class="section-title">Inventory management queue</h1>
-    <p class="section-lead">@Model.ApproximateInventoryCount message(s) in <code>inventory-management</code>.</p>
+    <p class="section-lead">@Model.ApproximateInventoryCount inventory update(s).</p>
 
     @if (!Model.PeekedInventoryMessages.Any())
     {

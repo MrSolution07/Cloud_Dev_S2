@@ -1,0 +1,27 @@
+@model AbcRetail.Models.CheckEmailViewModel
+@{
+    ViewData["Title"] = "Check your email";
+}
+
+<section class="glass-panel auth-panel">
+    <h1 class="section-title">Check your email</h1>
+    <p class="section-lead">We sent a message to <strong>@Model.Email</strong>. Confirm the address to continue.</p>
+
+    @if (!string.IsNullOrWhiteSpace(Model.ConfirmUrl))
+    {
+        <article class="inbox-preview">
+            <p class="inbox-meta">From ABC Retail · Inbox</p>
+            <h2>Confirm your email</h2>
+            <p>Hi, click below to verify this account and start shopping.</p>
+            <a class="btn-accent" href="@Model.ConfirmUrl">Confirm email</a>
+        </article>
+    }
+
+    <form asp-action="Resend" method="post" class="cta-row">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="email" value="@Model.Email" />
+        <input type="hidden" name="returnUrl" value="@Model.ReturnUrl" />
+        <button type="submit" class="btn-ghost">Resend message</button>
+        <a class="btn-ghost" asp-action="Login" asp-route-returnUrl="@Model.ReturnUrl">Back to log in</a>
+    </form>
+</section>

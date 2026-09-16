@@ -9,7 +9,7 @@
     <h1 class="section-title">Thank you</h1>
     <p class="section-lead">
         Order <code>@Model.Order.RowKey</code> is <strong>@Model.Order.Status</strong>.
-        A copy is stored in Azure Tables; the payment write also queued order-processing messages.
+        We’ll pack it next.
     </p>
     <p>Total paid: <strong>@Model.Order.Total.ToString("C")</strong>
         @if (!string.IsNullOrWhiteSpace(Model.Order.CardLast4))

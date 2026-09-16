@@ -20,22 +20,19 @@
                 <ul class="nav-links">
                     @if (User.IsInRole("Admin"))
                     {
-                        <li><a asp-controller="Home" asp-action="Index">Dashboard</a></li>
+                        <li><a asp-controller="Home" asp-action="Index">Overview</a></li>
                         <li><a asp-controller="Customers" asp-action="Index">Customers</a></li>
-                        <li><a asp-controller="Products" asp-action="Manage">Products</a></li>
+                        <li><a asp-controller="Products" asp-action="Manage">Catalog</a></li>
                         <li><a asp-controller="Orders" asp-action="Index">Orders</a></li>
-                        <li><a asp-controller="Logs" asp-action="Index">Logs</a></li>
+                        <li><a asp-controller="Logs" asp-action="Index">Activity</a></li>
                     }
                     else
                     {
                         <li><a asp-controller="Home" asp-action="Index">Home</a></li>
                         <li><a asp-controller="Products" asp-action="Index">Shop</a></li>
-                        @if (User.Identity?.IsAuthenticated == true)
-                        {
-                            <li>
-                                <a asp-controller="Cart" asp-action="Index">Cart @await Component.InvokeAsync("CartCount")</a>
-                            </li>
-                        }
+                        <li>
+                            <a asp-controller="Cart" asp-action="Index">Cart @await Component.InvokeAsync("CartCount")</a>
+                        </li>
                         <li><a asp-controller="Home" asp-action="Privacy">About</a></li>
                     }
                 </ul>
@@ -89,21 +86,21 @@
         <div class="footer-inner">
             <div>
                 <p class="footer-brand">ABC Retail</p>
-                <p class="footer-tag">@(User.IsInRole("Admin") ? "Azure Storage • Command Centre" : "Everyday essentials, delivered fast.")</p>
+                <p class="footer-tag">@(User.IsInRole("Admin") ? "Store operations" : "Everyday essentials, delivered fast.")</p>
             </div>
             <div class="footer-links">
                 @if (User.IsInRole("Admin"))
                 {
-                    <a asp-controller="Home" asp-action="Index">Dashboard</a>
+                    <a asp-controller="Home" asp-action="Index">Overview</a>
                     <a asp-controller="Orders" asp-action="Index">Orders</a>
-                    <a asp-controller="Logs" asp-action="Index">Logs</a>
+                    <a asp-controller="Logs" asp-action="Index">Activity</a>
                 }
                 else
                 {
                     <a asp-controller="Products" asp-action="Index">Shop</a>
+                    <a asp-controller="Cart" asp-action="Index">Cart</a>
                     @if (User.Identity?.IsAuthenticated == true)
                     {
-                        <a asp-controller="Cart" asp-action="Index">Cart</a>
                         <a asp-controller="Orders" asp-action="Mine">Orders</a>
                     }
                     <a asp-controller="Home" asp-action="Privacy">About</a>

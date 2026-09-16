@@ -41,5 +41,16 @@ public class CustomerEntity : ITableEntity
 
     public string Role { get; set; } = RoleCustomer;
 
+    public bool EmailConfirmed { get; set; }
+
+    public string? EmailConfirmToken { get; set; }
+
+    public DateTimeOffset? EmailConfirmExpiresUtc { get; set; }
+
+    public bool IsVerified =>
+        string.Equals(Role, RoleAdmin, StringComparison.OrdinalIgnoreCase)
+        || EmailConfirmed
+        || string.IsNullOrWhiteSpace(EmailConfirmToken);
+
     public static string NormalizeEmail(string email) => email.Trim().ToLowerInvariant();
 }

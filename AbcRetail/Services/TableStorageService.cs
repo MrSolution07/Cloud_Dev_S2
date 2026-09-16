@@ -244,6 +244,11 @@ public sealed class TableStorageService : ITableStorageService
 
     public async Task<OrderEntity?> GetOrderAsync(string orderId, CancellationToken ct = default)
     {
+        if (string.IsNullOrWhiteSpace(orderId))
+        {
+            return null;
+        }
+
         await EnsureInitializedAsync(ct);
         try
         {

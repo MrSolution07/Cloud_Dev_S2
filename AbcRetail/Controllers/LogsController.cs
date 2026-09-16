@@ -59,7 +59,7 @@ public class LogsController : Controller
         }
 
         await _functions.WriteFileAsync(create.FileName, create.Content, ct);
-        TempData["Status"] = $"Log file '{create.FileName}' stored via WriteFile (Azure Files).";
+        TempData["Status"] = $"Log file '{create.FileName}' saved.";
         return RedirectToAction(nameof(Index));
     }
 
@@ -73,7 +73,7 @@ public class LogsController : Controller
         }
 
         await _files.ClearLogsAsync(ct);
-        TempData["Status"] = "All log files deleted from Azure Files.";
+        TempData["Status"] = "All log files deleted.";
         return RedirectToAction(nameof(Index));
     }
 

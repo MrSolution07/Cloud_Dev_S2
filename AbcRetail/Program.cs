@@ -31,8 +31,13 @@ builder.Services.AddHttpClient("AzureFunctions", (sp, client) =>
 
     client.Timeout = TimeSpan.FromSeconds(60);
 });
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddSingleton<IFunctionGateway, FunctionGateway>();
 builder.Services.AddSingleton<ICartService, CartService>();
+builder.Services.AddScoped<ICartOwner, CartOwner>();
+builder.Services.AddScoped<IVerifyTicket, VerifyTicket>();
+builder.Services.Configure<EmailOptions>(builder.Configuration.GetSection(EmailOptions.SectionName));
+builder.Services.AddSingleton<IEmailSender, SmtpEmailSender>();
 
 // Cookie authentication: Customer vs Admin role drives which pages/nav items are visible.
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
@@ -84,10 +89,28 @@ if (gate.IsConfigured)
             FirstName = "ABC",
             LastName = "Admin",
             Email = "admin@abcretail.local",
-            Role = CustomerEntity.RoleAdmin
+            Role = CustomerEntity.RoleAdmin,
+            EmailConfirmed = true
         };
         admin.PasswordHash = new PasswordHasher<CustomerEntity>().HashPassword(admin, "Admin@12345");
         await tables.AddCustomerAsync(admin);
+    }
+    else if (!existingAdmin.EmailConfirmed)
+    {
+        existingAdmin.EmailConfirmed = true;
+        existingAdmin.EmailConfirmToken = null;
+        existingAdmin.EmailConfirmExpiresUtc = null;
+        await tables.UpdateCustomerAsync(existingAdmin);
+    }
+
+    try
+    {
+        var blobs = app.Services.GetRequiredService<IBlobStorageService>();
+        await CatalogSeeder.EnsureAsync(app.Environment, tables, blobs, app.Logger);
+    }
+    catch (Exception ex)
+    {
+        app.Logger.LogWarning(ex, "Catalog seed skipped.");
     }
 }
 

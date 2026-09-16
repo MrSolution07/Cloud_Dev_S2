@@ -4,50 +4,46 @@
     var ready = ViewBag.StorageReady as bool? ?? false;
 }
 
-<section class="hero hero-water">
-    <p class="pill">New season arrivals</p>
+<section class="hero">
+    <p class="pill">New season</p>
     <h1 class="brand-mark">ABC Retail</h1>
-    <p>Everyday essentials and standout finds, picked for quality and priced in Rand. Shop the catalog and check out in seconds.</p>
+    <p>Phones, laptops, audio, and more — priced in Rand, delivered fast.</p>
     <div class="cta-row">
         <a class="btn-accent" asp-controller="Products" asp-action="Index">Shop now</a>
-        @if (User.Identity?.IsAuthenticated == true)
+        @if (User.Identity?.IsAuthenticated == true && User.IsInRole("Admin"))
         {
-            @if (User.IsInRole("Admin"))
-            {
-                <a class="btn-ghost" asp-controller="Products" asp-action="Manage">Manage catalog</a>
-            }
-            else
-            {
-                <a class="btn-ghost" asp-controller="Cart" asp-action="Index">My cart</a>
-            }
+            <a class="btn-ghost" asp-controller="Products" asp-action="Manage">Manage catalog</a>
         }
-        <!-- Login lives in the header so the hero stays a shop CTA. -->
+        else
+        {
+            <a class="btn-ghost" asp-controller="Cart" asp-action="Index">View cart</a>
+        }
     </div>
 
     @if (!ready)
     {
         <div class="glass-panel" style="margin-top:1.5rem;">
-            <h2 class="section-title" style="font-size:1.4rem;">Storage not configured</h2>
-            <p class="section-lead" style="margin:0;">@(ViewBag.StorageMessage ?? "Set AzureStorage:ConnectionString (User Secrets locally, or App Setting AzureStorage__ConnectionString on App Service).")</p>
+            <h2 class="section-title" style="font-size:1.4rem;">Store temporarily unavailable</h2>
+            <p class="section-lead" style="margin:0;">@(ViewBag.StorageMessage ?? "The catalog cannot load right now. Please try again shortly.")</p>
         </div>
     }
 
     <div class="feature-strip">
         <article>
             <h3>Fast shipping</h3>
-            <p>Orders picked and processed the moment you check out.</p>
+            <p>Orders leave the warehouse as soon as payment clears.</p>
         </article>
         <article>
             <h3>Secure checkout</h3>
-            <p>Simulated card payment with server-side totals and stock checks.</p>
+            <p>Card details are never stored. Pay in Rand with a protected session.</p>
         </article>
         <article>
             <h3>Easy returns</h3>
-            <p>Not the right fit? Send it back, no hassle.</p>
+            <p>Changed your mind? Send it back within 30 days.</p>
         </article>
         <article>
             <h3>Real support</h3>
-            <p>Questions about an order? We're here to help.</p>
+            <p>Questions about an order? We’re here to help.</p>
         </article>
     </div>
 </section>
@@ -57,7 +53,7 @@
     <section class="glass-panel">
         <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
             <div>
-                <h2 class="section-title" style="font-size:1.6rem;">Featured products</h2>
+                <h2 class="section-title" style="font-size:1.6rem;">Featured</h2>
                 <p class="section-lead">Popular picks from the current catalog.</p>
             </div>
             <a class="btn-glass" asp-controller="Products" asp-action="Index">View all</a>

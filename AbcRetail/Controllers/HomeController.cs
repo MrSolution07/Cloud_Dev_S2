@@ -46,7 +46,7 @@ public class HomeController : Controller
             {
                 product.ImageUrl = _blobs.GetBlobUrl(product.PrimaryImageBlobName!);
             }
-            featured = products.Take(4).ToList();
+            featured = products.Where(p => !string.IsNullOrWhiteSpace(p.PrimaryImageBlobName)).Take(8).ToList();
         }
 
         return View(featured);
@@ -85,7 +85,7 @@ public class HomeController : Controller
                 .ToList(),
             RecentOrders = orders.Take(5).ToList(),
             RecentLogs = logs.Take(5).ToList(),
-            RecentProducts = products.Take(6).ToList()
+            RecentProducts = products.Take(8).ToList()
         };
 
         return View("Dashboard", model);

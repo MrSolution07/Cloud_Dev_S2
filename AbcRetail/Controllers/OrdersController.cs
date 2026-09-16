@@ -260,7 +260,7 @@ public class OrdersController : Controller
             $"product={productId} name={productName} stock={newStock} qty={qty} image={imageName}",
             ct);
 
-        TempData["Status"] = $"Dequeued: {message.MessageText}. Inventory message queued (stock={newStock}).";
+        TempData["Status"] = "Oldest order processed.";
         return RedirectToAction(nameof(Index));
     }
 }

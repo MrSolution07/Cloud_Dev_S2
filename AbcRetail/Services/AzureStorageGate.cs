@@ -20,7 +20,7 @@ public sealed class AzureStorageGate : IAzureStorageGate
                        && cs.Contains("AccountKey=", StringComparison.OrdinalIgnoreCase);
         MissingReason = IsConfigured
             ? null
-            : "Azure Storage connection string is missing. Set AzureStorage:ConnectionString via User Secrets or App Settings (AzureStorage__ConnectionString).";
+            : "The store is temporarily unavailable. Please try again shortly.";
     }
 
     public bool IsConfigured { get; }

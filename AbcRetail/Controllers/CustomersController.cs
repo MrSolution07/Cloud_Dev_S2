@@ -88,7 +88,8 @@ public class CustomersController : Controller
             Email = model.Email,
             Phone = model.Phone,
             City = model.City,
-            Role = role
+            Role = role,
+            EmailConfirmed = true
         };
         entity.PartitionKey = "USER";
         entity.RowKey = CustomerEntity.NormalizeEmail(entity.Email);
@@ -102,7 +103,7 @@ public class CustomersController : Controller
             $"created={entity.Email} role={role}",
             ct);
 
-        TempData["Status"] = $"Customer saved to Table Storage ({role}).";
+        TempData["Status"] = role == CustomerEntity.RoleAdmin ? "Admin account created." : "Customer account created.";
         return RedirectToAction(nameof(Index));
     }
 

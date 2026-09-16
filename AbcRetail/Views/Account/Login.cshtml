@@ -3,9 +3,9 @@
     ViewData["Title"] = "Log in";
 }
 
-<section class="glass-panel" style="max-width:420px;margin:0 auto;">
+<section class="glass-panel auth-panel">
     <h1 class="section-title">Log in</h1>
-    <p class="section-lead">Customers shop and buy. Admins manage products, customers, queues, and logs.</p>
+    <p class="section-lead">Welcome back. Sign in to check out and track orders.</p>
 
     <form asp-action="Login" method="post" class="form-grid">
         @Html.AntiForgeryToken()
@@ -23,9 +23,15 @@
         </label>
         <div class="cta-row">
             <button type="submit" class="btn-accent">Log in</button>
-            <a class="btn-ghost" asp-action="Register">Create an account</a>
+            <a class="btn-ghost" asp-action="Register" asp-route-returnUrl="@Model.ReturnUrl">Create an account</a>
         </div>
     </form>
+
+    <aside class="staff-hint">
+        <p class="staff-hint-label">Staff demo</p>
+        <p><span>Email</span> <code>admin@abcretail.local</code></p>
+        <p><span>Password</span> <code>Admin@12345</code></p>
+    </aside>
 </section>
 
 @section Scripts {

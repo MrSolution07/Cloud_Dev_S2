@@ -9,6 +9,7 @@ public interface ICartService
     Task<string?> UpdateQuantityAsync(string email, string productRowKey, int quantity, CancellationToken ct = default);
     Task RemoveAsync(string email, string productRowKey, CancellationToken ct = default);
     Task ClearAsync(string email, CancellationToken ct = default);
+    Task MergeAsync(string fromKey, string toKey, CancellationToken ct = default);
 }
 
 public sealed class CartService : ICartService
@@ -33,7 +34,7 @@ public sealed class CartService : ICartService
     public async Task<CartViewModel> GetAsync(string email, CancellationToken ct = default)
     {
         var model = new CartViewModel();
-        if (!_gate.IsConfigured)
+        if (!_gate.IsConfigured || string.IsNullOrWhiteSpace(email))
         {
             return model;
         }
@@ -134,10 +135,32 @@ public sealed class CartService : ICartService
 
     public async Task ClearAsync(string email, CancellationToken ct = default)
     {
+        if (string.IsNullOrWhiteSpace(email))
+        {
+            return;
+        }
+
         var items = await _tables.GetCartAsync(email, ct);
         foreach (var item in items)
         {
             await _functions.DeleteAsync("CartItems", item.PartitionKey, item.RowKey, ct);
         }
+    }
+
+    public async Task MergeAsync(string fromKey, string toKey, CancellationToken ct = default)
+    {
+        if (string.IsNullOrWhiteSpace(fromKey) || string.IsNullOrWhiteSpace(toKey)
+            || string.Equals(fromKey, toKey, StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        var source = await _tables.GetCartAsync(fromKey, ct);
+        foreach (var item in source)
+        {
+            await AddAsync(toKey, item.RowKey, item.Quantity, ct);
+        }
+
+        await ClearAsync(fromKey, ct);
     }
 }

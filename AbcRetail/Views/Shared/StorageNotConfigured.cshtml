@@ -1,18 +1,10 @@
 @model string?
 @{
-    ViewData["Title"] = "Storage not configured";
+    ViewData["Title"] = "Store unavailable";
 }
 
 <section class="glass-panel">
-    <h1 class="section-title">Connect Azure Storage</h1>
-    <p class="section-lead">@(Model ?? "Azure Storage connection string is missing.")</p>
-    <ol>
-        <li>Create resources using <span class="mono">docs/azure/</span>.</li>
-        <li>Copy the storage account connection string.</li>
-        <li>Run:
-            <pre class="mono">dotnet user-secrets set "AzureStorage:ConnectionString" "&lt;paste-here&gt;"</pre>
-        </li>
-        <li>Restart the app.</li>
-    </ol>
+    <h1 class="section-title">Store temporarily unavailable</h1>
+    <p class="section-lead">@(Model ?? "The catalog cannot load right now. Please try again shortly.")</p>
     <a class="btn-glass" asp-controller="Home" asp-action="Index">Back home</a>
 </section>

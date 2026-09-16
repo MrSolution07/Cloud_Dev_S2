@@ -1,62 +1,82 @@
 [
   {
     "file": "iphone-17-pro-max.jpg",
-    "category": "Apple",
+    "category": "Phones",
     "name": "iPhone 17 Pro Max",
+    "price": 28999,
+    "stock": 14,
     "description": "Apple flagship. Large Super Retina display, A19 Pro chip, titanium frame, triple-camera system. All-day battery. Built for pro photo, video, and everyday use."
   },
   {
     "file": "samsung-galaxy-s25-ultra.jpg",
-    "category": "Samsung",
+    "category": "Phones",
     "name": "Samsung Galaxy S25 Ultra",
+    "price": 26999,
+    "stock": 12,
     "description": "Samsung flagship. Bright AMOLED display, S Pen, titanium build, 200 MP camera. Long battery life and desktop-class multitasking on Android."
   },
   {
     "file": "samsung-galaxy-z-fold.jpg",
-    "category": "Samsung",
+    "category": "Phones",
     "name": "Samsung Galaxy Z Fold",
+    "price": 32999,
+    "stock": 8,
     "description": "Foldable phone that opens into a tablet. Inner AMOLED canvas for split-screen apps, cover screen for one-hand use. Slim hinge, pocketable when closed."
   },
   {
     "file": "samsung-galaxy-tab-s10.jpg",
-    "category": "Samsung",
+    "category": "Tablets",
     "name": "Samsung Galaxy Tab S10",
+    "price": 18999,
+    "stock": 10,
     "description": "Premium Android tablet. Slim aluminum body, high-refresh AMOLED, DeX desktop mode. Optional keyboard and S Pen for work and media."
   },
   {
     "file": "apple-macbook-pro.jpg",
-    "category": "Apple",
+    "category": "Laptops",
     "name": "MacBook Pro 16\"",
+    "price": 45999,
+    "stock": 6,
     "description": "16-inch Liquid Retina XDR laptop. Apple silicon, studio-grade speakers, all-day battery. Built for code, video, and heavy creative work."
   },
   {
     "file": "apple-ipad-pro.jpg",
-    "category": "Apple",
+    "category": "Tablets",
     "name": "iPad Pro",
+    "price": 21999,
+    "stock": 11,
     "description": "Ultra-thin tablet with OLED display and Apple silicon. Apple Pencil and Magic Keyboard ready. One device for sketch, edit, and stream."
   },
   {
     "file": "apple-airpods-pro.jpg",
-    "category": "Apple",
+    "category": "Audio",
     "name": "AirPods Pro",
+    "price": 4499,
+    "stock": 24,
     "description": "In-ear wireless earbuds with active noise cancellation, Adaptive Audio, and MagSafe charging case. Sweat resistant. One-tap pair with Apple devices."
   },
   {
     "file": "google-pixel-10-pro.jpg",
-    "category": "Other",
+    "category": "Phones",
     "name": "Google Pixel 10 Pro",
+    "price": 21999,
+    "stock": 9,
     "description": "Google flagship. Tensor chip, clean Android, pro camera bar, on-device AI editing. Seven years of OS updates. Simple, fast, camera-first phone."
   },
   {
     "file": "sony-mirrorless-camera.jpg",
-    "category": "Other",
+    "category": "Cameras",
     "name": "Sony Mirrorless Camera",
+    "price": 24999,
+    "stock": 7,
     "description": "Compact full-frame style mirrorless body with kit lens. Fast autofocus, 4K video, flip screen. Travel-ready stills and video kit."
   },
   {
     "file": "bluetooth-speaker.jpg",
-    "category": "Other",
+    "category": "Audio",
     "name": "Portable Bluetooth Speaker",
+    "price": 1299,
+    "stock": 30,
     "description": "Compact wireless speaker. Deep bass, IP-rated shell, 12-hour battery, USB-C charge. Pair two for stereo. Desk, kitchen, or travel."
   }
 ]

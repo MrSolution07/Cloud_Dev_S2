@@ -1,11 +1,11 @@
 @model AbcRetail.Models.LogsIndexViewModel
 @{
-    ViewData["Title"] = "Logs";
+    ViewData["Title"] = "Activity";
 }
 
 <section class="glass-panel">
-    <h1 class="section-title">System logs</h1>
-    <p class="section-lead">@Model.Files.Count log file(s) on record — activity traces register, login, cart, products, and admin actions.</p>
+    <h1 class="section-title">Activity</h1>
+    <p class="section-lead">@Model.Files.Count file(s) — activity from the store and checkout.</p>
 
     <form asp-action="Create" method="post" class="form-grid">
         @Html.AntiForgeryToken()
@@ -23,7 +23,7 @@
     </form>
 
     <form asp-action="Clear" method="post" class="form-grid" style="margin-top:1rem;"
-          onsubmit="return confirm('Delete ALL log files from Azure Files? This cannot be undone.');">
+          onsubmit="return confirm('Delete ALL log files? This cannot be undone.');">
         @Html.AntiForgeryToken()
         <button type="submit" class="btn-glass" style="color:#8b1e1e;border-color:rgba(139,30,30,0.35);">Clear all logs</button>
     </form>
@@ -52,7 +52,7 @@
         }
         @if (!Model.Files.Any())
         {
-            <tr><td colspan="3">No log files yet. Register, log in, add to cart, or manage products — those actions write activity logs.</td></tr>
+            <tr><td colspan="3">No log files yet.</td></tr>
         }
         </tbody>
     </table>

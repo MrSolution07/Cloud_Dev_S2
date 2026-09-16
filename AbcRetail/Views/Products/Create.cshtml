@@ -5,7 +5,7 @@
 
 <section class="glass-panel">
     <h1 class="section-title">Add product</h1>
-    <p class="section-lead">Add a new product to the catalog — upload up to 5 images (JPEG/PNG/WebP/GIF, 1 MB each).</p>
+    <p class="section-lead">Upload up to 5 images (JPEG, PNG, WebP, or GIF — 1 MB each). The first image is the cover.</p>
 
     <form asp-action="Create" method="post" enctype="multipart/form-data" class="form-grid">
         @Html.AntiForgeryToken()
@@ -17,7 +17,7 @@
         </label>
         <label>
             Description
-            <textarea asp-for="Description" rows="6" placeholder="Materials, dimensions, capacity, what's included..."></textarea>
+            <textarea asp-for="Description" rows="6" placeholder="Materials, dimensions, what’s included…"></textarea>
         </label>
         <label>
             Price (ZAR)
@@ -31,17 +31,17 @@
         </label>
         <label>
             Category
-            <input asp-for="Category" list="categories" />
-            <datalist id="categories">
-                <option value="Outdoor"></option>
-                <option value="Home"></option>
-                <option value="Electronics"></option>
-                <option value="Apparel"></option>
-                <option value="Other"></option>
-            </datalist>
+            <select asp-for="Category">
+                <option value="">Select category</option>
+                @foreach (var cat in (ViewBag.Categories as IEnumerable<string> ?? AbcRetail.Services.ProductQuery.CanonicalCategories))
+                {
+                    <option value="@cat">@cat</option>
+                }
+            </select>
+            <span asp-validation-for="Category" class="text-danger"></span>
         </label>
         <label>
-            Product images (select up to 5 — first one becomes the cover image)
+            Product images
             <input name="Images" type="file" accept="image/*" multiple />
             <span asp-validation-for="Images" class="text-danger"></span>
         </label>

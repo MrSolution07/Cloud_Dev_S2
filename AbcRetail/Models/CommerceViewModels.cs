@@ -60,7 +60,7 @@ public class PaymentViewModel
     public string CardholderName { get; set; } = string.Empty;
 
     [System.ComponentModel.DataAnnotations.Required]
-    [System.ComponentModel.DataAnnotations.RegularExpression(@"^[0-9 ]{13,23}$", ErrorMessage = "Enter a test card number (digits only).")]
+    [System.ComponentModel.DataAnnotations.RegularExpression(@"^[0-9 ]{13,23}$", ErrorMessage = "Enter a card number (digits only).")]
     public string CardNumber { get; set; } = string.Empty;
 
     [System.ComponentModel.DataAnnotations.Required]

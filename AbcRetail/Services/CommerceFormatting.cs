@@ -28,7 +28,10 @@ public static class CommerceFormatting
         ["AddressLine"] = c.AddressLine,
         ["PostalCode"] = c.PostalCode,
         ["PasswordHash"] = c.PasswordHash,
-        ["Role"] = c.Role
+        ["Role"] = c.Role,
+        ["EmailConfirmed"] = c.EmailConfirmed,
+        ["EmailConfirmToken"] = c.EmailConfirmToken,
+        ["EmailConfirmExpiresUtc"] = c.EmailConfirmExpiresUtc
     };
 
     public static Dictionary<string, object?> ProductProperties(ProductEntity p) => new()

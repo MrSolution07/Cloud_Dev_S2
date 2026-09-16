@@ -213,7 +213,8 @@ public class CheckoutController : Controller
         var order = await LoadOwnOrderAsync(orderId, ct);
         if (order is null)
         {
-            return NotFound();
+            TempData["Error"] = "Choose items and check out to pay.";
+            return RedirectToAction("Index", "Cart");
         }
 
         if (order.Status == OrderEntity.StatusPaid || order.PaymentStatus == OrderEntity.PaymentSucceeded)
@@ -276,7 +277,7 @@ public class CheckoutController : Controller
         {
             await FinalisePaymentAsync(order, OrderEntity.StatusFailed, OrderEntity.PaymentFailed, $"sim_fail_{order.RowKey}", Last4(digits), ct);
             await _functions.WriteFileAsync($"payment-failed-{order.RowKey}.log", $"Payment failed for order {order.RowKey} at {DateTime.UtcNow:O}. No stock deducted.", ct);
-            TempData["Error"] = "Payment failed. The simulated gateway declined this test card. Your order was not completed.";
+            TempData["Error"] = "Payment declined. Try another card. Your order was not completed.";
             return RedirectToAction(nameof(Pay), new { orderId });
         }
 
@@ -361,6 +362,19 @@ public class CheckoutController : Controller
         if (!_gate.IsConfigured)
         {
             return View("~/Views/Shared/StorageNotConfigured.cshtml", _gate.MissingReason);
+        }
+
+        var email = User.Identity?.Name;
+        if (string.IsNullOrWhiteSpace(email))
+        {
+            return RedirectToAction("Login", "Account", new { returnUrl = Request.Path.ToString() });
+        }
+
+        var account = await _tables.GetUserByEmailAsync(email, ct);
+        if (account is null || !account.IsVerified)
+        {
+            TempData["Error"] = "Confirm your email before checkout.";
+            return RedirectToAction("CheckEmail", "Account", new { email, returnUrl = Url.Action(nameof(Shipping)) });
         }
 
         return null;

@@ -2,24 +2,44 @@
 @{
     ViewData["Title"] = "Manage products";
     var blobCount = ViewBag.BlobCount as int? ?? 0;
+    var selectedCategory = (string?)ViewBag.Category;
+    var categories = ViewBag.Categories as IEnumerable<string> ?? Array.Empty<string>();
 }
 
 <section class="glass-panel">
     <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
         <div>
-            <h1 class="section-title">Manage products</h1>
-            <p class="section-lead">Catalog · @Model.Count product(s) · @blobCount image(s) stored</p>
+            <h1 class="section-title">Catalog</h1>
+            <p class="section-lead">@Model.Count in this view · @blobCount image(s)</p>
         </div>
         <a class="btn-accent" asp-action="Create">Add product</a>
     </div>
-    <form method="get" class="shop-filters">
+    <form method="get" class="shop-filters" role="search">
         <input type="search" name="q" value="@ViewBag.Query" placeholder="Search catalog" />
-        <button type="submit" class="btn-glass">Search</button>
+        <select name="category" aria-label="Category">
+            <option value="">All categories</option>
+            @foreach (var cat in categories)
+            {
+                if (string.Equals(cat, selectedCategory, StringComparison.OrdinalIgnoreCase))
+                {
+                    <option value="@cat" selected>@cat</option>
+                }
+                else
+                {
+                    <option value="@cat">@cat</option>
+                }
+            }
+        </select>
+        <button type="submit" class="btn-glass">Filter</button>
+        @if (!string.IsNullOrWhiteSpace((string?)ViewBag.Query) || !string.IsNullOrWhiteSpace(selectedCategory))
+        {
+            <a class="btn-ghost" asp-action="Manage">Clear</a>
+        }
     </form>
 
     @if (!Model.Any())
     {
-        <p>No products match. Add a product or clear the search.</p>
+        <p>No products match. Add a product or clear the filter.</p>
     }
     else
     {
@@ -28,9 +48,9 @@
             <tr>
                 <th>Image</th>
                 <th>Name</th>
+                <th>Category</th>
                 <th>Price (ZAR)</th>
                 <th>Stock</th>
-                <th>Images</th>
                 <th></th>
             </tr>
         </thead>
@@ -48,13 +68,10 @@
                         <span class="pill">No image</span>
                     }
                 </td>
-                <td>
-                    <strong>@p.Name</strong>
-                    <div class="text-muted small">@(p.Description ?? "")</div>
-                </td>
+                <td><strong>@p.Name</strong></td>
+                <td>@(string.IsNullOrWhiteSpace(p.Category) ? "—" : p.Category)</td>
                 <td>@p.Price.ToString("C")</td>
                 <td>@p.Stock</td>
-                <td class="mono">@p.AllImageBlobNames.Count image(s)</td>
                 <td>
                     <a class="btn-glass" asp-action="Edit" asp-route-rowKey="@p.RowKey">Edit</a>
                     <form asp-action="Delete" method="post" onsubmit="return confirm('Delete this product and its images?');" style="display:inline;">
@@ -66,6 +83,6 @@
             </tr>
         }
         </tbody>
-    </table>
+        </table>
     }
 </section>

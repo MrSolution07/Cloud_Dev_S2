@@ -8,7 +8,7 @@ namespace AbcRetail.Controllers;
 /// <summary>Product catalogue UI: Azure Tables (products) + Azure Blob Storage (images) via Functions when configured.</summary>
 public class ProductsController : Controller
 {
-    public static readonly string[] Categories = ["Outdoor", "Home", "Electronics", "Apparel", "Other"];
+    public static readonly string[] Categories = ProductQuery.CanonicalCategories;
 
     private readonly ITableStorageService _tables;
     private readonly IBlobStorageService _blobs;
@@ -30,32 +30,21 @@ public class ProductsController : Controller
         _functions = functions;
     }
 
-    public async Task<IActionResult> Index(string? q, string? category, CancellationToken ct)
+    public async Task<IActionResult> Index(string? q, string? category, string? sort, CancellationToken ct)
     {
         if (!_gate.IsConfigured)
         {
             return View("~/Views/Shared/StorageNotConfigured.cshtml", _gate.MissingReason);
         }
 
-        var products = (await _tables.GetProductsAsync(ct)).AsEnumerable();
-        if (!string.IsNullOrWhiteSpace(q))
-        {
-            products = products.Where(p =>
-                p.Name.Contains(q, StringComparison.OrdinalIgnoreCase)
-                || (p.Description?.Contains(q, StringComparison.OrdinalIgnoreCase) ?? false));
-        }
-
-        if (!string.IsNullOrWhiteSpace(category))
-        {
-            products = products.Where(p => string.Equals(p.Category, category, StringComparison.OrdinalIgnoreCase)
-                                           || (string.IsNullOrWhiteSpace(p.Category) && category == "Other"));
-        }
-
-        var list = products.ToList();
+        var all = await _tables.GetProductsAsync(ct);
+        var list = ProductQuery.Apply(all, q, category, sort);
         ResolveImages(list);
         ViewBag.Query = q;
         ViewBag.Category = category;
-        ViewBag.Categories = Categories;
+        ViewBag.Sort = sort;
+        ViewBag.Categories = ProductQuery.FilterOptions(all);
+        ViewBag.TotalCount = all.Count;
         return View(list);
     }
 
@@ -77,22 +66,21 @@ public class ProductsController : Controller
     }
 
     [Authorize(Roles = CustomerEntity.RoleAdmin)]
-    public async Task<IActionResult> Manage(string? q, CancellationToken ct)
+    public async Task<IActionResult> Manage(string? q, string? category, CancellationToken ct)
     {
         if (!_gate.IsConfigured)
         {
             return View("~/Views/Shared/StorageNotConfigured.cshtml", _gate.MissingReason);
         }
 
-        var products = await _tables.GetProductsAsync(ct);
-        if (!string.IsNullOrWhiteSpace(q))
-        {
-            products = products.Where(p => p.Name.Contains(q, StringComparison.OrdinalIgnoreCase)).ToList();
-        }
-
+        var all = await _tables.GetProductsAsync(ct);
+        var products = ProductQuery.Apply(all, q, category);
         ResolveImages(products);
         ViewBag.BlobCount = (await _blobs.ListBlobNamesAsync(ct)).Count;
         ViewBag.Query = q;
+        ViewBag.Category = category;
+        ViewBag.Categories = ProductQuery.FilterOptions(all);
+        ViewBag.TotalCount = all.Count;
         return View(products);
     }
 
@@ -105,6 +93,7 @@ public class ProductsController : Controller
             return View("~/Views/Shared/StorageNotConfigured.cshtml", _gate.MissingReason);
         }
 
+        ViewBag.Categories = Categories;
         return View(new ProductCreateViewModel());
     }
 
@@ -121,6 +110,7 @@ public class ProductsController : Controller
 
         if (!ModelState.IsValid)
         {
+            ViewBag.Categories = Categories;
             return View(model);
         }
 
@@ -130,12 +120,13 @@ public class ProductsController : Controller
             Description = model.Description,
             Price = model.Price,
             Stock = model.Stock,
-            Category = string.IsNullOrWhiteSpace(model.Category) ? "Other" : model.Category
+            Category = model.Category!.Trim()
         };
 
         var uploaded = await UploadImagesAsync(model.Images, ct);
         if (!ModelState.IsValid)
         {
+            ViewBag.Categories = Categories;
             return View(model);
         }
 
@@ -151,7 +142,7 @@ public class ProductsController : Controller
             User.Identity?.Name,
             $"name={entity.Name} images={uploaded.Count} price={entity.Price} stock={entity.Stock}",
             ct);
-        TempData["Status"] = "Product saved via StoreTable; images stored via WriteBlob.";
+        TempData["Status"] = "Product saved.";
         return RedirectToAction(nameof(Manage));
     }
 
@@ -172,6 +163,7 @@ public class ProductsController : Controller
 
         ViewBag.ExistingImages = product.AllImageBlobNames.Select(_blobs.GetBlobUrl).ToList();
         ViewBag.RowKey = rowKey;
+        SetCategoryOptions(product.Category);
         return View(new ProductCreateViewModel
         {
             Name = product.Name,
@@ -198,6 +190,7 @@ public class ProductsController : Controller
         {
             ViewBag.ExistingImages = product.AllImageBlobNames.Select(_blobs.GetBlobUrl).ToList();
             ViewBag.RowKey = rowKey;
+            SetCategoryOptions(model.Category ?? product.Category);
             return View(model);
         }
 
@@ -205,13 +198,14 @@ public class ProductsController : Controller
         product.Description = model.Description;
         product.Price = model.Price;
         product.Stock = model.Stock;
-        product.Category = string.IsNullOrWhiteSpace(model.Category) ? product.Category : model.Category;
+        product.Category = model.Category!.Trim();
 
         var extra = await UploadImagesAsync(model.Images, ct);
         if (!ModelState.IsValid)
         {
             ViewBag.ExistingImages = product.AllImageBlobNames.Select(_blobs.GetBlobUrl).ToList();
             ViewBag.RowKey = rowKey;
+            SetCategoryOptions(model.Category ?? product.Category);
             return View(model);
         }
 
@@ -248,8 +242,20 @@ public class ProductsController : Controller
         }
 
         await _functions.DeleteAsync("Products", "PRODUCT", rowKey, ct);
-        TempData["Status"] = "Product deleted from Table Storage; related blobs removed.";
+        TempData["Status"] = "Product deleted.";
         return RedirectToAction(nameof(Manage));
+    }
+
+    private void SetCategoryOptions(string? extra = null)
+    {
+        var list = Categories.ToList();
+        if (!string.IsNullOrWhiteSpace(extra)
+            && !list.Contains(extra, StringComparer.OrdinalIgnoreCase))
+        {
+            list.Add(extra.Trim());
+        }
+
+        ViewBag.Categories = list;
     }
 
     private async Task<List<string>> UploadImagesAsync(IEnumerable<IFormFile>? images, CancellationToken ct)

@@ -16,6 +16,7 @@ public class ProductCreateViewModel
     [Range(0, 1_000_000)]
     public int Stock { get; set; }
 
+    [Required(ErrorMessage = "Select a category.")]
     [StringLength(80)]
     public string? Category { get; set; }
 

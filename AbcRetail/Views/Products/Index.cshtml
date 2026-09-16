@@ -1,35 +1,80 @@
 @model IReadOnlyList<AbcRetail.Models.ProductEntity>
 @{
     ViewData["Title"] = "Shop";
+    var selectedCategory = (string?)ViewBag.Category;
+    var selectedSort = (string?)ViewBag.Sort;
+    var query = (string?)ViewBag.Query;
+    var categories = ViewBag.Categories as IEnumerable<string> ?? Array.Empty<string>();
+    var total = ViewBag.TotalCount as int? ?? Model.Count;
+    var filtered = Model.Count != total || !string.IsNullOrWhiteSpace(query) || !string.IsNullOrWhiteSpace(selectedCategory);
+    var isAdmin = User.IsInRole("Admin");
 }
 
 <section class="glass-panel">
     <div>
         <h1 class="section-title">Shop</h1>
-        <p class="section-lead">Browse the catalog, search, and add items to your cart. Prices are in ZAR.</p>
+        <p class="section-lead">Browse the catalog. Prices in ZAR.</p>
     </div>
-    <form method="get" class="shop-filters">
-        <input type="search" name="q" value="@ViewBag.Query" placeholder="Search products" />
-        <select name="category">
-            <option value="">All categories</option>
-            @foreach (var cat in (ViewBag.Categories as string[] ?? Array.Empty<string>()))
+    <form method="get" class="shop-filters" role="search">
+        <input type="search" name="q" value="@query" placeholder="Search products" />
+        <select name="sort" aria-label="Sort">
+            @if (string.IsNullOrWhiteSpace(selectedSort))
             {
-                if (cat == (string?)ViewBag.Category)
-                {
-                    <option value="@cat" selected>@cat</option>
-                }
-                else
-                {
-                    <option value="@cat">@cat</option>
-                }
+                <option value="" selected>Newest</option>
+            }
+            else
+            {
+                <option value="">Newest</option>
+            }
+            @if (string.Equals(selectedSort, "price-asc", StringComparison.OrdinalIgnoreCase))
+            {
+                <option value="price-asc" selected>Price: low to high</option>
+            }
+            else
+            {
+                <option value="price-asc">Price: low to high</option>
+            }
+            @if (string.Equals(selectedSort, "price-desc", StringComparison.OrdinalIgnoreCase))
+            {
+                <option value="price-desc" selected>Price: high to low</option>
+            }
+            else
+            {
+                <option value="price-desc">Price: high to low</option>
             }
         </select>
-        <button type="submit" class="btn-glass">Filter</button>
+        <input type="hidden" name="category" value="@selectedCategory" />
+        <button type="submit" class="btn-glass">Search</button>
+        @if (filtered)
+        {
+            <a class="btn-ghost" asp-action="Index">Clear</a>
+        }
     </form>
+    @if (categories.Any())
+    {
+        <div class="category-chips" role="navigation" aria-label="Categories">
+            <a class="chip @(string.IsNullOrWhiteSpace(selectedCategory) ? "is-active" : null)"
+               asp-action="Index" asp-route-q="@query" asp-route-sort="@selectedSort">All</a>
+            @foreach (var cat in categories)
+            {
+                var active = string.Equals(cat, selectedCategory, StringComparison.OrdinalIgnoreCase);
+                <a class="chip @(active ? "is-active" : null)"
+                   asp-action="Index" asp-route-q="@query" asp-route-category="@cat" asp-route-sort="@selectedSort">@cat</a>
+            }
+        </div>
+    }
+    <p class="filter-meta">@(filtered ? $"Showing {Model.Count} of {total} products" : $"{Model.Count} products")</p>
 
     @if (!Model.Any())
     {
-        <p>No products available right now — check back soon.</p>
+        if (total == 0)
+        {
+            <p>No products available right now — check back soon.</p>
+        }
+        else
+        {
+            <p>No products match this search. <a asp-action="Index">Clear filters</a></p>
+        }
     }
     else
     {
@@ -57,36 +102,22 @@
                     </a>
                     <div class="product-card-body">
                         <h3><a asp-action="Details" asp-route-rowKey="@p.RowKey">@p.Name</a></h3>
-                        @if (!string.IsNullOrWhiteSpace(p.Description))
-                        {
-                            <p class="product-card-desc">@p.Description</p>
-                        }
-                        @if (!string.IsNullOrWhiteSpace(p.Category))
-                        {
-                            <p class="product-card-desc">@p.Category</p>
-                        }
                         <p class="product-card-price">@p.Price.ToString("C")</p>
-                        @if (User.Identity?.IsAuthenticated == true && !User.IsInRole("Admin"))
-                        {
-                            <form asp-controller="Cart" asp-action="Add" method="post">
-                                @Html.AntiForgeryToken()
-                                <input type="hidden" name="productRowKey" value="@p.RowKey" />
-                                <input type="hidden" name="returnUrl" value="@Url.Action("Index", "Products", new { q = ViewBag.Query, category = ViewBag.Category })" />
-                                <div class="qty-form">
-                                    <input type="number" name="quantity" value="1" min="1" max="@(p.Stock > 0 ? p.Stock : 1)" @(p.Stock <= 0 ? "disabled" : null) />
-                                    <button type="submit" class="btn-accent" @(p.Stock <= 0 ? "disabled" : null)>Add to cart</button>
-                                </div>
-                            </form>
-                        }
-                        else if (User.IsInRole("Admin"))
+                        @if (isAdmin)
                         {
                             <a class="btn-ghost" asp-action="Edit" asp-route-rowKey="@p.RowKey">Edit</a>
                         }
                         else
                         {
-                            <a class="btn-accent" style="width:100%;text-align:center;"
-                               asp-controller="Account" asp-action="Login"
-                               asp-route-returnUrl="@Url.Action("Details", "Products", new { rowKey = p.RowKey })">Log in to buy</a>
+                            <form asp-controller="Cart" asp-action="Add" method="post">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="productRowKey" value="@p.RowKey" />
+                                <input type="hidden" name="returnUrl" value="@Url.Action("Index", "Products", new { q = query, category = selectedCategory, sort = selectedSort })" />
+                                <div class="qty-form">
+                                    <input type="number" name="quantity" value="1" min="1" max="@(p.Stock > 0 ? p.Stock : 1)" @(p.Stock <= 0 ? "disabled" : null) />
+                                    <button type="submit" class="btn-accent" @(p.Stock <= 0 ? "disabled" : null)>Add to cart</button>
+                                </div>
+                            </form>
                         }
                     </div>
                 </article>

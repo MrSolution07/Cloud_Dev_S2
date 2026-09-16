@@ -1,20 +1,20 @@
 using AbcRetail.Models;
 using AbcRetail.Services;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AbcRetail.Controllers;
 
-[Authorize]
 public class CartController : Controller
 {
     private readonly ICartService _cart;
+    private readonly ICartOwner _owner;
     private readonly IAzureStorageGate _gate;
     private readonly IFileStorageService _files;
 
-    public CartController(ICartService cart, IAzureStorageGate gate, IFileStorageService files)
+    public CartController(ICartService cart, ICartOwner owner, IAzureStorageGate gate, IFileStorageService files)
     {
         _cart = cart;
+        _owner = owner;
         _gate = gate;
         _files = files;
     }
@@ -31,8 +31,7 @@ public class CartController : Controller
             return View("~/Views/Shared/StorageNotConfigured.cshtml", _gate.MissingReason);
         }
 
-        var email = User.Identity?.Name ?? string.Empty;
-        return View(await _cart.GetAsync(email, ct));
+        return View(await _cart.GetAsync(_owner.CurrentKey(), ct));
     }
 
     [HttpPost]
@@ -41,7 +40,7 @@ public class CartController : Controller
     {
         if (User.IsInRole(CustomerEntity.RoleAdmin))
         {
-            TempData["Error"] = "Admin accounts manage the shop; sign in as a customer to buy.";
+            TempData["Error"] = "Use a customer account to shop.";
             return RedirectToAction("Index", "Products");
         }
 
@@ -50,16 +49,16 @@ public class CartController : Controller
             return View("~/Views/Shared/StorageNotConfigured.cshtml", _gate.MissingReason);
         }
 
-        var email = User.Identity?.Name ?? string.Empty;
-        var error = await _cart.AddAsync(email, productRowKey, quantity, ct);
+        var key = _owner.CurrentKey(createGuest: true);
+        var error = await _cart.AddAsync(key, productRowKey, quantity, ct);
         if (error is not null)
         {
-            await _files.WriteActivityAsync("CartAddFail", email, error, ct);
+            await _files.WriteActivityAsync("CartAddFail", key, error, ct);
             TempData["Error"] = error;
         }
         else
         {
-            await _files.WriteActivityAsync("CartAdd", email, $"product={productRowKey} qty={quantity}", ct);
+            await _files.WriteActivityAsync("CartAdd", key, $"product={productRowKey} qty={quantity}", ct);
             TempData["Status"] = "Added to cart.";
         }
 
@@ -75,17 +74,13 @@ public class CartController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Update(string productRowKey, int quantity, CancellationToken ct)
     {
-        var email = User.Identity?.Name ?? string.Empty;
-        var warning = await _cart.UpdateQuantityAsync(email, productRowKey, quantity, ct);
-        if (warning is not null)
+        if (User.IsInRole(CustomerEntity.RoleAdmin))
         {
-            TempData["Error"] = warning;
-        }
-        else
-        {
-            TempData["Status"] = "Cart updated.";
+            return RedirectToAction("Index", "Home");
         }
 
+        var warning = await _cart.UpdateQuantityAsync(_owner.CurrentKey(), productRowKey, quantity, ct);
+        TempData[warning is not null ? "Error" : "Status"] = warning ?? "Cart updated.";
         return RedirectToAction(nameof(Index));
     }
 
@@ -93,8 +88,12 @@ public class CartController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Remove(string productRowKey, CancellationToken ct)
     {
-        var email = User.Identity?.Name ?? string.Empty;
-        await _cart.RemoveAsync(email, productRowKey, ct);
+        if (User.IsInRole(CustomerEntity.RoleAdmin))
+        {
+            return RedirectToAction("Index", "Home");
+        }
+
+        await _cart.RemoveAsync(_owner.CurrentKey(), productRowKey, ct);
         TempData["Status"] = "Item removed.";
         return RedirectToAction(nameof(Index));
     }
