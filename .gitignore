@@ -8,8 +8,7 @@ publish/
 *.publishproj
 *.zip
 
-# Secrets
-**/appsettings.Development.json
+**/local.settings.json
 **/appsettings.*.local.json
 .env
 .env.*
