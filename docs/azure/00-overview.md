@@ -34,7 +34,9 @@ Create **one** Azure Storage account that exposes all four services used by the 
 7. [08-connection-strings-and-secrets.md](08-connection-strings-and-secrets.md)
 8. Run the MVC app and seed ≥5 records per service
 9. [07-app-service-deploy.md](07-app-service-deploy.md)
-10. [09-screenshot-checklist.md](09-screenshot-checklist.md)
+10. [09-screenshot-checklist.md](09-screenshot-checklist.md) (Project 1)
+11. [10-function-app.md](10-function-app.md) (Project 2)
+12. [11-project2-screenshot-checklist.md](11-project2-screenshot-checklist.md)
 
 ## Official docs
 
