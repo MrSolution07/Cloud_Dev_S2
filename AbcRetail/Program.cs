@@ -4,6 +4,7 @@ using AbcRetail.Options;
 using AbcRetail.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,6 +18,21 @@ builder.Services.AddSingleton<ITableStorageService, TableStorageService>();
 builder.Services.AddSingleton<IBlobStorageService, BlobStorageService>();
 builder.Services.AddSingleton<IQueueStorageService, QueueStorageService>();
 builder.Services.AddSingleton<IFileStorageService, FileStorageService>();
+builder.Services.Configure<AzureFunctionsOptions>(
+    builder.Configuration.GetSection(AzureFunctionsOptions.SectionName));
+builder.Services.AddHttpClient("AzureFunctions", (sp, client) =>
+{
+    var opts = sp.GetRequiredService<IOptions<AzureFunctionsOptions>>().Value;
+    if (!string.IsNullOrWhiteSpace(opts.BaseUrl))
+    {
+        var baseUrl = opts.BaseUrl.TrimEnd('/') + "/";
+        client.BaseAddress = new Uri(baseUrl);
+    }
+
+    client.Timeout = TimeSpan.FromSeconds(60);
+});
+builder.Services.AddSingleton<IFunctionGateway, FunctionGateway>();
+builder.Services.AddSingleton<ICartService, CartService>();
 
 // Cookie authentication: Customer vs Admin role drives which pages/nav items are visible.
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
