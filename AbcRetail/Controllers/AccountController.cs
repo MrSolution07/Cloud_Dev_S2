@@ -15,13 +15,15 @@ public class AccountController : Controller
     private readonly ITableStorageService _tables;
     private readonly IAzureStorageGate _gate;
     private readonly IFileStorageService _files;
+    private readonly IFunctionGateway _functions;
     private readonly PasswordHasher<CustomerEntity> _hasher = new();
 
-    public AccountController(ITableStorageService tables, IAzureStorageGate gate, IFileStorageService files)
+    public AccountController(ITableStorageService tables, IAzureStorageGate gate, IFileStorageService files, IFunctionGateway functions)
     {
         _tables = tables;
         _gate = gate;
         _files = files;
+        _functions = functions;
     }
 
     [HttpGet]
@@ -63,15 +65,20 @@ public class AccountController : Controller
             Email = model.Email,
             Phone = model.Phone,
             City = model.City,
+            AddressLine = model.AddressLine,
+            PostalCode = model.PostalCode,
             Role = CustomerEntity.RoleCustomer
         };
+        entity.PartitionKey = "USER";
+        entity.RowKey = CustomerEntity.NormalizeEmail(entity.Email);
+        entity.Email = entity.RowKey;
         entity.PasswordHash = _hasher.HashPassword(entity, model.Password);
 
-        await _tables.AddCustomerAsync(entity, ct);
+        await _functions.UpsertAsync("Customers", entity.PartitionKey, entity.RowKey, CommerceFormatting.CustomerProperties(entity), ct);
         await SignInAsync(entity);
         await _files.WriteActivityAsync("Register", entity.Email, $"role={entity.Role} city={entity.City}", ct);
 
-        TempData["Status"] = "Welcome to ABC Retail — your profile is saved !";
+        TempData["Status"] = "Welcome to ABC Retail — your profile is saved!";
         return RedirectAfterAuth(entity, model.ReturnUrl);
     }
 
@@ -168,6 +175,8 @@ public class AccountController : Controller
             LastName = user.LastName,
             Phone = user.Phone,
             City = user.City,
+            AddressLine = user.AddressLine,
+            PostalCode = user.PostalCode,
             Role = user.Role
         });
     }
@@ -198,7 +207,22 @@ public class AccountController : Controller
         user.LastName = model.LastName;
         user.Phone = model.Phone;
         user.City = model.City;
-        await _tables.UpdateCustomerAsync(user, ct);
+        user.AddressLine = model.AddressLine;
+        user.PostalCode = model.PostalCode;
+        if (!string.IsNullOrWhiteSpace(model.NewPassword))
+        {
+            if (model.NewPassword.Length < 8)
+            {
+                ModelState.AddModelError(nameof(model.NewPassword), "New password must be at least 8 characters.");
+                model.Email = user.Email;
+                model.Role = user.Role;
+                return View(model);
+            }
+
+            user.PasswordHash = _hasher.HashPassword(user, model.NewPassword);
+        }
+
+        await _functions.UpsertAsync("Customers", user.PartitionKey, user.RowKey, CommerceFormatting.CustomerProperties(user), ct);
         await _files.WriteActivityAsync("ProfileUpdate", email, $"name={user.FirstName} {user.LastName} city={user.City}", ct);
 
         TempData["Status"] = "Profile updated.";
@@ -257,17 +281,22 @@ public class AccountController : Controller
         var adminOnly =
             path.StartsWith("/Products/Manage", StringComparison.OrdinalIgnoreCase)
             || path.StartsWith("/Products/Create", StringComparison.OrdinalIgnoreCase)
+            || path.StartsWith("/Products/Edit", StringComparison.OrdinalIgnoreCase)
             || path.StartsWith("/Customers", StringComparison.OrdinalIgnoreCase)
             || path.StartsWith("/Logs", StringComparison.OrdinalIgnoreCase)
             || path.Equals("/Orders", StringComparison.OrdinalIgnoreCase)
-            || path.StartsWith("/Orders/Index", StringComparison.OrdinalIgnoreCase);
+            || path.StartsWith("/Orders/Index", StringComparison.OrdinalIgnoreCase)
+            || path.StartsWith("/Orders/UpdateStatus", StringComparison.OrdinalIgnoreCase);
 
         if (adminOnly)
         {
             return isAdmin;
         }
 
-        if (path.StartsWith("/Orders/Cart", StringComparison.OrdinalIgnoreCase))
+        if (path.StartsWith("/Orders/Cart", StringComparison.OrdinalIgnoreCase)
+            || path.StartsWith("/Cart", StringComparison.OrdinalIgnoreCase)
+            || path.StartsWith("/Checkout", StringComparison.OrdinalIgnoreCase)
+            || path.StartsWith("/Orders/Mine", StringComparison.OrdinalIgnoreCase))
         {
             return !isAdmin;
         }

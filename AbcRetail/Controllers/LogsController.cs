@@ -11,11 +11,13 @@ public class LogsController : Controller
 {
     private readonly IFileStorageService _files;
     private readonly IAzureStorageGate _gate;
+    private readonly IFunctionGateway _functions;
 
-    public LogsController(IFileStorageService files, IAzureStorageGate gate)
+    public LogsController(IFileStorageService files, IAzureStorageGate gate, IFunctionGateway functions)
     {
         _files = files;
         _gate = gate;
+        _functions = functions;
     }
 
     public async Task<IActionResult> Index(CancellationToken ct)
@@ -56,8 +58,22 @@ public class LogsController : Controller
             return View("Index", model);
         }
 
-        await _files.WriteLogAsync(create.FileName, create.Content, ct);
-        TempData["Status"] = $"Log file '{create.FileName}' stored in Azure Files.";
+        await _functions.WriteFileAsync(create.FileName, create.Content, ct);
+        TempData["Status"] = $"Log file '{create.FileName}' stored via WriteFile (Azure Files).";
+        return RedirectToAction(nameof(Index));
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Clear(CancellationToken ct)
+    {
+        if (!_gate.IsConfigured)
+        {
+            return View("~/Views/Shared/StorageNotConfigured.cshtml", _gate.MissingReason);
+        }
+
+        await _files.ClearLogsAsync(ct);
+        TempData["Status"] = "All log files deleted from Azure Files.";
         return RedirectToAction(nameof(Index));
     }
 

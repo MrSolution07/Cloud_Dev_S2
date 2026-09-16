@@ -14,16 +14,18 @@ public class CustomersController : Controller
     private readonly ITableStorageService _tables;
     private readonly IAzureStorageGate _gate;
     private readonly IFileStorageService _files;
+    private readonly IFunctionGateway _functions;
     private readonly PasswordHasher<CustomerEntity> _hasher = new();
 
-    public CustomersController(ITableStorageService tables, IAzureStorageGate gate, IFileStorageService files)
+    public CustomersController(ITableStorageService tables, IAzureStorageGate gate, IFileStorageService files, IFunctionGateway functions)
     {
         _tables = tables;
         _gate = gate;
         _files = files;
+        _functions = functions;
     }
 
-    public async Task<IActionResult> Index(CancellationToken ct)
+    public async Task<IActionResult> Index(string? q, CancellationToken ct)
     {
         if (!_gate.IsConfigured)
         {
@@ -31,6 +33,15 @@ public class CustomersController : Controller
         }
 
         var customers = await _tables.GetCustomersAsync(ct);
+        if (!string.IsNullOrWhiteSpace(q))
+        {
+            customers = customers.Where(c =>
+                c.Email.Contains(q, StringComparison.OrdinalIgnoreCase)
+                || c.FirstName.Contains(q, StringComparison.OrdinalIgnoreCase)
+                || c.LastName.Contains(q, StringComparison.OrdinalIgnoreCase)).ToList();
+        }
+
+        ViewBag.Query = q;
         return View(customers);
     }
 
@@ -79,9 +90,12 @@ public class CustomersController : Controller
             City = model.City,
             Role = role
         };
+        entity.PartitionKey = "USER";
+        entity.RowKey = CustomerEntity.NormalizeEmail(entity.Email);
+        entity.Email = entity.RowKey;
         entity.PasswordHash = _hasher.HashPassword(entity, model.Password);
 
-        await _tables.AddCustomerAsync(entity, ct);
+        await _functions.UpsertAsync("Customers", entity.PartitionKey, entity.RowKey, CommerceFormatting.CustomerProperties(entity), ct);
         await _files.WriteActivityAsync(
             "CustomerCreate",
             User.Identity?.Name,
@@ -101,7 +115,28 @@ public class CustomersController : Controller
             return View("~/Views/Shared/StorageNotConfigured.cshtml", _gate.MissingReason);
         }
 
-        await _tables.DeleteCustomerAsync(rowKey, ct);
+        var customers = await _tables.GetCustomersAsync(ct);
+        var target = customers.FirstOrDefault(c => string.Equals(c.RowKey, rowKey, StringComparison.OrdinalIgnoreCase));
+        if (target is null)
+        {
+            TempData["Error"] = "Account not found.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        if (string.Equals(target.Email, User.Identity?.Name, StringComparison.OrdinalIgnoreCase))
+        {
+            TempData["Error"] = "You cannot delete the account you are signed in with.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        if (string.Equals(target.Role, CustomerEntity.RoleAdmin, StringComparison.OrdinalIgnoreCase)
+            && customers.Count(c => c.Role == CustomerEntity.RoleAdmin) <= 1)
+        {
+            TempData["Error"] = "Cannot delete the last admin account.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        await _functions.DeleteAsync("Customers", target.PartitionKey, target.RowKey, ct);
         TempData["Status"] = "Customer deleted.";
         return RedirectToAction(nameof(Index));
     }

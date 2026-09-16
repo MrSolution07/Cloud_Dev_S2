@@ -63,6 +63,7 @@ public class HomeController : Controller
         var products = await _tables.GetProductsAsync(ct);
         var blobs = await _blobs.ListBlobNamesAsync(ct);
         var orders = await _queues.PeekOrderMessagesAsync(maxMessages: 8, ct: ct);
+        var tableOrders = await _tables.GetAllOrdersAsync(ct);
         var logs = await _files.ListLogsAsync(ct);
 
         foreach (var product in products.Where(p => !string.IsNullOrWhiteSpace(p.PrimaryImageBlobName)))
@@ -76,6 +77,8 @@ public class HomeController : Controller
             ProductImageCount = blobs.Count,
             QueueMessageCount = await _queues.GetApproximateOrderCountAsync(ct),
             LogFileCount = logs.Count,
+            OrderCount = tableOrders.Count,
+            RecentTableOrders = tableOrders.Take(5).ToList(),
             RecentCustomers = customers
                 .OrderByDescending(c => c.Timestamp)
                 .Take(5)
