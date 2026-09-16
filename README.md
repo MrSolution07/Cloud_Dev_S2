@@ -1,37 +1,32 @@
-# ABC Retail — CLDV7112 Project 1
+# ABC Retail — CLDV7112 Project 1 + Project 2
 
 **Author:** Christian Bulabula Emungu ([@MrSolution07](https://github.com/MrSolution07))
 
-ASP.NET Core MVC app for **ABC Retail** using all four Azure Storage services:
+ASP.NET Core MVC app for **ABC Retail** using Azure Storage, plus four Azure Functions (Project 2).
 
+| Service | Feature |
+| --- | --- |
+| Azure Tables | Customers, Products, Orders, CartItems |
+| Azure Blob Storage | Product images (`product-images`) |
+| Azure Queues | `order-processing` + `inventory-management` |
+| Azure Files | Log files (`applogs` / `logs`) |
+| Azure Functions | `StoreTable`, `WriteBlob`, `QueueTransaction`, `WriteFile` |
 
-| Service            | Feature                                                          |
-| ------------------ | ---------------------------------------------------------------- |
-| Azure Tables       | Customer/Admin login profiles (Customers table) + Products       |
-| Azure Blob Storage | Product images — multiple per product (`product-images`)         |
-| Azure Queues       | Orders (`order-processing`) + inventory (`inventory-management`) |
-| Azure Files        | Log files (`applogs` / `logs`)                                   |
-
-
-UI: liquid-glass outdoor look (CSS glassmorphism; kayak sites as visual inspiration only — catalog stays general retail), lightweight images (≤1 MB each, up to 5 per product).
-
-Prices are shown in **ZAR (R)**.
+UI: liquid-glass storefront. Prices in **ZAR (R)**. Payment is a **simulation** (no real card processing).
 
 ## Accounts & roles
 
-- **Customer** — self-registers at `/Account/Register`. Can browse the shop, view product details/galleries, add to cart, and edit their own profile.
-- **Admin** — full access: manage products (multi-image upload, description, price, stock), view all customers, process the order/inventory queues, and view logs.
+- **Customer** — `/Account/Register`. Shop, cart, checkout, simulated payment, My orders, profile.
+- **Admin** — products (create/edit/delete, stock), customers, orders + queues, logs.
 
-A default Admin account is seeded automatically the first time the app runs against a configured storage account:
+Seeded admin (change before sharing):
 
 ```
 Email:    admin@abcretail.local
 Password: Admin@12345
 ```
 
-Change this password (or delete/recreate the row in the `Customers` table) before sharing the app.
-
-## Quick start (local testing — no Azure App Service deploy yet)
+## Quick start (MVC only)
 
 ```bash
 cd AbcRetail
@@ -40,35 +35,55 @@ dotnet user-secrets set "AzureStorage:ConnectionString" "<your-storage-connectio
 dotnet run
 ```
 
-Open the HTTPS URL from the console (see `Properties/launchSettings.json`). If another `dotnet run` is already using the port, stop it first (`Ctrl+C` in its terminal, or kill the process) before starting a new one.
+Cart, checkout, and admin still work: `IFunctionGateway` uses the Storage SDK when `AzureFunctions:BaseUrl` is empty.
 
-Test locally as both roles (register a customer, log in as the seeded admin) before deploying to Azure App Service.
+## Quick start (MVC + Functions — Project 2)
+
+```bash
+cp AbcRetail.Functions/local.settings.json.example AbcRetail.Functions/local.settings.json
+# paste the storage connection string into AzureWebJobsStorage and AzureStorage__ConnectionString
+
+cd AbcRetail.Functions && func start
+```
+
+```bash
+cd AbcRetail
+dotnet user-secrets set "AzureFunctions:BaseUrl" "http://localhost:7071/api"
+dotnet user-secrets set "AzureFunctions:Key" "dev-local-key"
+dotnet run
+```
+
+Simulated cards: success `4242424242424242` · decline `4000000000000002`. Never enter a real PAN.
 
 ## Azure setup
 
-Step-by-step portal + CLI guides live in `[docs/azure/](docs/azure/00-overview.md)`.
+Guides in [`docs/azure/`](docs/azure/00-overview.md). **StorageV2** required.
 
-**Must use StorageV2** (general-purpose v2), not a Blob-only account.
+Project 2 Function App: [`docs/azure/10-function-app.md`](docs/azure/10-function-app.md).
 
 ## Project layout
 
 ```
-AbcRetail/          MVC web app (.NET 10)
-docs/azure/         How to create Azure resources
+AbcRetail/              MVC web app (.NET 10)
+AbcRetail.Functions/    Isolated worker (.NET 8) — four HTTP functions
+AbcRetail/wwwroot/images/catalog/  Shop JPEGs uploaded to Blob Storage
+img/                    Source PNGs (AirPods, Z Fold, Sony camera)
+docs/azure/             Portal + CLI guides
+ASSESSMENT_ANSWERS.md   Project 2 written answers (IIE Harvard)
 ```
-
-
 
 ## Deploy
 
-See `[docs/azure/07-app-service-deploy.md](docs/azure/07-app-service-deploy.md)`.
-
-App Setting name: `AzureStorage__ConnectionString`
+- Web App: [`docs/azure/07-app-service-deploy.md`](docs/azure/07-app-service-deploy.md) — `AzureStorage__ConnectionString`
+- Function App: [`docs/azure/10-function-app.md`](docs/azure/10-function-app.md)
+- Web App also needs `AzureFunctions__BaseUrl` and `AzureFunctions__Key` after the Function App is live
 
 ## Submission
 
-See `[docs/azure/09-screenshot-checklist.md](docs/azure/09-screenshot-checklist.md)` for rubric screenshots (≥5 records per service).
+- Project 1 screenshots: [`docs/azure/09-screenshot-checklist.md`](docs/azure/09-screenshot-checklist.md)
+- Project 2 screenshots: [`docs/azure/11-project2-screenshot-checklist.md`](docs/azure/11-project2-screenshot-checklist.md)
+- Written answers: [`ASSESSMENT_ANSWERS.md`](ASSESSMENT_ANSWERS.md) → Word file `{StudentNumber}_CLDV7112_Project2`
 
 ## Note on target framework
 
-Scaffolded with the installed SDK templates as **net10.0**. If your campus App Service only offers .NET 8, change `<TargetFramework>` in `AbcRetail.csproj` to `net8.0` (requires the .NET 8 targeting pack) and select .NET 8 in App Service.
+MVC is **net10.0**. Functions are **net8.0 isolated** for campus Function App runtimes. If App Service has no .NET 10, retarget `AbcRetail.csproj` to `net8.0`.
