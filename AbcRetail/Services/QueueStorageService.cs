@@ -11,6 +11,7 @@ public interface IQueueStorageService
     Task EnsureInitializedAsync(CancellationToken ct = default);
     Task SendOrderMessageAsync(string productId, string productName, string? imageName, string customerEmail, CancellationToken ct = default);
     Task SendInventoryMessageAsync(string productId, string productName, int stock, string? imageName, CancellationToken ct = default);
+    Task SendRawAsync(string queueName, string message, CancellationToken ct = default);
     Task<IReadOnlyList<OrderMessageViewModel>> PeekOrderMessagesAsync(int maxMessages = 32, CancellationToken ct = default);
     Task<IReadOnlyList<OrderMessageViewModel>> PeekInventoryMessagesAsync(int maxMessages = 32, CancellationToken ct = default);
     Task<OrderMessageViewModel?> DequeueOneAsync(CancellationToken ct = default);
@@ -71,6 +72,13 @@ public sealed class QueueStorageService : IQueueStorageService
         var imagePart = string.IsNullOrWhiteSpace(imageName) ? "none" : imageName;
         var text = $"Inventory update|{productId}|{productName}|{stock}|{imagePart}|{DateTime.UtcNow:O}";
         await InventoryQueue.SendMessageAsync(text, cancellationToken: ct);
+    }
+
+    public async Task SendRawAsync(string queueName, string message, CancellationToken ct = default)
+    {
+        await EnsureInitializedAsync(ct);
+        var queue = queueName.Contains("inventory", StringComparison.OrdinalIgnoreCase) ? InventoryQueue : OrderQueue;
+        await queue.SendMessageAsync(message, cancellationToken: ct);
     }
 
     public async Task<IReadOnlyList<OrderMessageViewModel>> PeekOrderMessagesAsync(int maxMessages = 32, CancellationToken ct = default)

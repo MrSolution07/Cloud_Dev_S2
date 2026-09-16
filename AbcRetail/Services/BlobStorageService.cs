@@ -10,6 +10,8 @@ public interface IBlobStorageService
 {
     Task EnsureInitializedAsync(CancellationToken ct = default);
     Task<(string BlobName, string Url)> UploadProductImageAsync(IFormFile file, CancellationToken ct = default);
+    Task<(string BlobName, string Url)> UploadProductImageAsync(Stream content, string fileName, string contentType, CancellationToken ct = default);
+    Task DeleteBlobAsync(string blobName, CancellationToken ct = default);
     Task<IReadOnlyList<string>> ListBlobNamesAsync(CancellationToken ct = default);
     string GetBlobUrl(string blobName);
 }
@@ -55,25 +57,39 @@ public sealed class BlobStorageService : IBlobStorageService
 
     public async Task<(string BlobName, string Url)> UploadProductImageAsync(IFormFile file, CancellationToken ct = default)
     {
+        await using var input = file.OpenReadStream();
+        return await UploadProductImageAsync(input, file.FileName, file.ContentType ?? "application/octet-stream", file.Length, ct);
+    }
+
+    public Task<(string BlobName, string Url)> UploadProductImageAsync(Stream content, string fileName, string contentType, CancellationToken ct = default) =>
+        UploadProductImageAsync(content, fileName, contentType, content.CanSeek ? content.Length : 0, ct);
+
+    private async Task<(string BlobName, string Url)> UploadProductImageAsync(Stream content, string fileName, string contentType, long length, CancellationToken ct)
+    {
         await EnsureInitializedAsync(ct);
 
-        if (file.Length <= 0)
+        if (length <= 0 && content.CanSeek)
+        {
+            length = content.Length;
+        }
+
+        if (length <= 0)
         {
             throw new InvalidOperationException("Image file is empty.");
         }
 
-        if (file.Length > MaxUploadBytes)
+        if (length > MaxUploadBytes)
         {
             throw new InvalidOperationException("Image must be 1 MB or smaller for fast page loads.");
         }
 
-        var contentType = string.IsNullOrWhiteSpace(file.ContentType) ? "application/octet-stream" : file.ContentType;
+        contentType = string.IsNullOrWhiteSpace(contentType) ? "application/octet-stream" : contentType;
         if (!AllowedContentTypes.Contains(contentType))
         {
             throw new InvalidOperationException("Only JPEG, PNG, WebP, or GIF images are allowed.");
         }
 
-        var extension = Path.GetExtension(file.FileName);
+        var extension = Path.GetExtension(fileName);
         if (string.IsNullOrWhiteSpace(extension) || extension.Length > 5)
         {
             extension = contentType switch
@@ -87,10 +103,19 @@ public sealed class BlobStorageService : IBlobStorageService
 
         var blobName = $"{Guid.NewGuid():N}{extension.ToLowerInvariant()}";
         var blob = Container.GetBlobClient(blobName);
-
-        await using var input = file.OpenReadStream();
-        await blob.UploadAsync(input, new BlobHttpHeaders { ContentType = contentType }, cancellationToken: ct);
+        await blob.UploadAsync(content, new BlobHttpHeaders { ContentType = contentType }, cancellationToken: ct);
         return (blobName, blob.Uri.ToString());
+    }
+
+    public async Task DeleteBlobAsync(string blobName, CancellationToken ct = default)
+    {
+        if (string.IsNullOrWhiteSpace(blobName))
+        {
+            return;
+        }
+
+        await EnsureInitializedAsync(ct);
+        await Container.GetBlobClient(Path.GetFileName(blobName)).DeleteIfExistsAsync(cancellationToken: ct);
     }
 
     public async Task<IReadOnlyList<string>> ListBlobNamesAsync(CancellationToken ct = default)
