@@ -1,0 +1,58 @@
+@model AbcRetail.Models.CheckoutShippingViewModel
+@{
+    ViewData["Title"] = "Checkout — Delivery";
+}
+
+<section class="glass-panel" style="max-width:560px;margin:0 auto;">
+    <ol class="checkout-steps">
+        <li>Cart</li>
+        <li class="is-active">Delivery</li>
+        <li>Summary</li>
+        <li>Payment</li>
+    </ol>
+    <h1 class="section-title">Delivery details</h1>
+    <p class="section-lead">We use this address for the order. Saving also updates your profile.</p>
+
+    <form asp-action="Shipping" method="post" class="form-grid">
+        @Html.AntiForgeryToken()
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <label>
+            First name
+            <input asp-for="FirstName" />
+            <span asp-validation-for="FirstName" class="text-danger"></span>
+        </label>
+        <label>
+            Last name
+            <input asp-for="LastName" />
+            <span asp-validation-for="LastName" class="text-danger"></span>
+        </label>
+        <label>
+            Phone
+            <input asp-for="Phone" />
+            <span asp-validation-for="Phone" class="text-danger"></span>
+        </label>
+        <label>
+            Address
+            <input asp-for="AddressLine" />
+            <span asp-validation-for="AddressLine" class="text-danger"></span>
+        </label>
+        <label>
+            City
+            <input asp-for="City" />
+            <span asp-validation-for="City" class="text-danger"></span>
+        </label>
+        <label>
+            Postal code
+            <input asp-for="PostalCode" />
+            <span asp-validation-for="PostalCode" class="text-danger"></span>
+        </label>
+        <div class="cta-row">
+            <button type="submit" class="btn-accent">Continue to summary</button>
+            <a class="btn-ghost" asp-controller="Cart" asp-action="Index">Back to cart</a>
+        </div>
+    </form>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

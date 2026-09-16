@@ -1,0 +1,63 @@
+@model AbcRetail.Models.PaymentViewModel
+@{
+    ViewData["Title"] = "Checkout — Payment";
+}
+
+<section class="glass-panel" style="max-width:560px;margin:0 auto;">
+    <ol class="checkout-steps">
+        <li>Cart</li>
+        <li>Delivery</li>
+        <li>Summary</li>
+        <li class="is-active">Payment</li>
+    </ol>
+    <h1 class="section-title">Simulated payment</h1>
+    <p class="section-lead">
+        Test gateway only — no real cards are charged or stored. Amount due:
+        <strong>@Model.Amount.ToString("C")</strong>
+    </p>
+    <p class="text-muted small">
+        Success: <code>4242424242424242</code> · Decline: <code>4000000000000002</code> · Any other number is treated as declined. Use any future MM/YY and CVC.
+    </p>
+
+    <form asp-action="Pay" asp-route-orderId="@Model.OrderId" method="post" class="form-grid" id="pay-form">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="outcome" value="pay" />
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <label>
+            Name on card
+            <input asp-for="CardholderName" autocomplete="cc-name" />
+            <span asp-validation-for="CardholderName" class="text-danger"></span>
+        </label>
+        <label>
+            Card number
+            <input asp-for="CardNumber" inputmode="numeric" autocomplete="cc-number" placeholder="ACCT-000015" />
+            <span asp-validation-for="CardNumber" class="text-danger"></span>
+        </label>
+        <label>
+            Expiry (MM/YY)
+            <input asp-for="Expiry" placeholder="12/28" autocomplete="cc-exp" />
+            <span asp-validation-for="Expiry" class="text-danger"></span>
+        </label>
+        <label>
+            CVC
+            <input asp-for="Cvc" inputmode="numeric" autocomplete="cc-csc" />
+            <span asp-validation-for="Cvc" class="text-danger"></span>
+        </label>
+        <div class="cta-row">
+            <button type="submit" class="btn-accent" id="pay-submit">Pay @Model.Amount.ToString("C")</button>
+            <button type="submit" class="btn-ghost" name="outcome" value="cancel">Cancel payment</button>
+        </div>
+    </form>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.getElementById('pay-form')?.addEventListener('submit', function (e) {
+            var submitter = e.submitter;
+            if (submitter && submitter.value === 'cancel') return;
+            var btn = document.getElementById('pay-submit');
+            if (btn) { btn.disabled = true; btn.textContent = 'Processing payment…'; }
+        });
+    </script>
+}

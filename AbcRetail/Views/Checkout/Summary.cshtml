@@ -1,0 +1,47 @@
+@model AbcRetail.Models.CheckoutSummaryViewModel
+@{
+    ViewData["Title"] = "Checkout — Summary";
+}
+
+<section class="glass-panel">
+    <ol class="checkout-steps">
+        <li>Cart</li>
+        <li>Delivery</li>
+        <li class="is-active">Summary</li>
+        <li>Payment</li>
+    </ol>
+    <h1 class="section-title">Order summary</h1>
+    <p class="section-lead">Prices below are loaded from Azure Tables at checkout time.</p>
+
+    <div class="order-list">
+        @foreach (var line in Model.Cart.Lines)
+        {
+            <div class="order-card">
+                @if (!string.IsNullOrWhiteSpace(line.ImageUrl))
+                {
+                    <img class="product-thumb" src="@line.ImageUrl" alt="@line.Name" />
+                }
+                <div>
+                    <strong>@line.Name</strong>
+                    <div class="text-muted small">@line.Quantity × @line.UnitPrice.ToString("C")</div>
+                </div>
+                <strong>@line.LineTotal.ToString("C")</strong>
+            </div>
+        }
+    </div>
+
+    <p><strong>Deliver to</strong><br />
+        @Model.Shipping.FirstName @Model.Shipping.LastName<br />
+        @Model.Shipping.AddressLine, @Model.Shipping.City, @Model.Shipping.PostalCode<br />
+        @Model.Shipping.Phone
+    </p>
+    <p>Total <strong>@Model.Cart.Total.ToString("C")</strong></p>
+
+    <form asp-action="Place" method="post">
+        @Html.AntiForgeryToken()
+        <div class="cta-row">
+            <button type="submit" class="btn-accent">Continue to payment</button>
+            <a class="btn-ghost" asp-action="Shipping">Edit delivery</a>
+        </div>
+    </form>
+</section>

@@ -1,0 +1,44 @@
+@model AbcRetail.Models.OrderDetailsViewModel
+@{
+    ViewData["Title"] = "Order confirmed";
+    var resolveBlobUrl = ViewBag.BlobUrlResolver as Func<string, string>;
+}
+
+<section class="glass-panel">
+    <p class="pill">Payment @Model.Order.PaymentStatus</p>
+    <h1 class="section-title">Thank you</h1>
+    <p class="section-lead">
+        Order <code>@Model.Order.RowKey</code> is <strong>@Model.Order.Status</strong>.
+        A copy is stored in Azure Tables; the payment write also queued order-processing messages.
+    </p>
+    <p>Total paid: <strong>@Model.Order.Total.ToString("C")</strong>
+        @if (!string.IsNullOrWhiteSpace(Model.Order.CardLast4))
+        {
+            <span class="text-muted small"> · card ending @Model.Order.CardLast4</span>
+        }
+    </p>
+    <p>@Model.Order.ShipFirstName @Model.Order.ShipLastName · @Model.Order.AddressLine, @Model.Order.ShipCity @Model.Order.PostalCode</p>
+
+    <div class="order-list">
+        @foreach (var line in Model.Lines)
+        {
+            var thumb = !string.IsNullOrWhiteSpace(line.ImageBlobName) && resolveBlobUrl is not null ? resolveBlobUrl(line.ImageBlobName) : null;
+            <div class="order-card">
+                @if (thumb is not null)
+                {
+                    <img class="product-thumb" src="@thumb" alt="@line.Name" />
+                }
+                <div>
+                    <strong>@line.Name</strong>
+                    <div class="text-muted small">@line.Quantity × @line.UnitPrice.ToString("C")</div>
+                </div>
+                <strong>@((line.UnitPrice * line.Quantity).ToString("C"))</strong>
+            </div>
+        }
+    </div>
+
+    <div class="cta-row">
+        <a class="btn-accent" asp-controller="Orders" asp-action="Mine">View my orders</a>
+        <a class="btn-ghost" asp-controller="Products" asp-action="Index">Continue shopping</a>
+    </div>
+</section>
