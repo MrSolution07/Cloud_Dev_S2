@@ -1,13 +1,24 @@
 @model AbcRetail.Models.ProductCreateViewModel
 @{
-    ViewData["Title"] = "Add product";
+    ViewData["Title"] = "Edit product";
+    var existing = ViewBag.ExistingImages as List<string> ?? new List<string>();
 }
 
 <section class="glass-panel">
-    <h1 class="section-title">Add product</h1>
-    <p class="section-lead">Add a new product to the catalog — upload up to 5 images (JPEG/PNG/WebP/GIF, 1 MB each).</p>
+    <h1 class="section-title">Edit product</h1>
+    <p class="section-lead">Update catalog fields. Additional images are appended (max 5 total).</p>
 
-    <form asp-action="Create" method="post" enctype="multipart/form-data" class="form-grid">
+    @if (existing.Any())
+    {
+        <div class="product-gallery-thumbs" style="margin-bottom:1rem;">
+            @foreach (var url in existing)
+            {
+                <img src="@url" alt="Existing image" class="gallery-thumb" />
+            }
+        </div>
+    }
+
+    <form asp-action="Edit" asp-route-rowKey="@ViewBag.RowKey" method="post" enctype="multipart/form-data" class="form-grid">
         @Html.AntiForgeryToken()
         <div asp-validation-summary="ModelOnly" class="text-danger"></div>
         <label>
@@ -17,7 +28,7 @@
         </label>
         <label>
             Description
-            <textarea asp-for="Description" rows="6" placeholder="Materials, dimensions, capacity, what's included..."></textarea>
+            <textarea asp-for="Description" rows="6"></textarea>
         </label>
         <label>
             Price (ZAR)
@@ -41,12 +52,12 @@
             </datalist>
         </label>
         <label>
-            Product images (select up to 5 — first one becomes the cover image)
+            Add images (optional)
             <input name="Images" type="file" accept="image/*" multiple />
             <span asp-validation-for="Images" class="text-danger"></span>
         </label>
         <div class="cta-row">
-            <button type="submit" class="btn-accent">Save product</button>
+            <button type="submit" class="btn-accent">Save changes</button>
             <a class="btn-ghost" asp-action="Manage">Cancel</a>
         </div>
     </form>

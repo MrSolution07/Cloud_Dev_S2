@@ -50,13 +50,18 @@
         }
 
         <div class="cta-row" style="margin-top:1rem;">
-            @if (User.Identity?.IsAuthenticated == true)
+            @if (User.Identity?.IsAuthenticated == true && !User.IsInRole("Admin"))
             {
-                <form asp-controller="Orders" asp-action="Enqueue" method="post">
+                <form asp-controller="Cart" asp-action="Add" method="post" class="qty-form">
                     @Html.AntiForgeryToken()
                     <input type="hidden" name="productRowKey" value="@Model.RowKey" />
-                    <button type="submit" class="btn-accent" @(Model.Stock <= 0 ? "disabled" : "")>Add to cart</button>
+                    <input type="number" name="quantity" value="1" min="1" max="@(Model.Stock > 0 ? Model.Stock : 1)" @(Model.Stock <= 0 ? "disabled" : null) />
+                    <button type="submit" class="btn-accent" @(Model.Stock <= 0 ? "disabled" : null)>Add to cart</button>
                 </form>
+            }
+            else if (User.IsInRole("Admin"))
+            {
+                <a class="btn-accent" asp-action="Edit" asp-route-rowKey="@Model.RowKey">Edit product</a>
             }
             else
             {

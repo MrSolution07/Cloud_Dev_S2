@@ -6,8 +6,26 @@
 <section class="glass-panel">
     <div>
         <h1 class="section-title">Shop</h1>
-        <p class="section-lead">Browse the full catalog and add anything you like straight to your cart.</p>
+        <p class="section-lead">Browse the catalog, search, and add items to your cart. Prices are in ZAR.</p>
     </div>
+    <form method="get" class="shop-filters">
+        <input type="search" name="q" value="@ViewBag.Query" placeholder="Search products" />
+        <select name="category">
+            <option value="">All categories</option>
+            @foreach (var cat in (ViewBag.Categories as string[] ?? Array.Empty<string>()))
+            {
+                if (cat == (string?)ViewBag.Category)
+                {
+                    <option value="@cat" selected>@cat</option>
+                }
+                else
+                {
+                    <option value="@cat">@cat</option>
+                }
+            }
+        </select>
+        <button type="submit" class="btn-glass">Filter</button>
+    </form>
 
     @if (!Model.Any())
     {
@@ -43,14 +61,26 @@
                         {
                             <p class="product-card-desc">@p.Description</p>
                         }
-                        <p class="product-card-price">@p.Price.ToString("C")</p>
-                        @if (User.Identity?.IsAuthenticated == true)
+                        @if (!string.IsNullOrWhiteSpace(p.Category))
                         {
-                            <form asp-controller="Orders" asp-action="Enqueue" method="post">
+                            <p class="product-card-desc">@p.Category</p>
+                        }
+                        <p class="product-card-price">@p.Price.ToString("C")</p>
+                        @if (User.Identity?.IsAuthenticated == true && !User.IsInRole("Admin"))
+                        {
+                            <form asp-controller="Cart" asp-action="Add" method="post">
                                 @Html.AntiForgeryToken()
                                 <input type="hidden" name="productRowKey" value="@p.RowKey" />
-                                <button type="submit" class="btn-accent" style="width:100%;" @(p.Stock <= 0 ? "disabled" : "")>Add to cart</button>
+                                <input type="hidden" name="returnUrl" value="@Url.Action("Index", "Products", new { q = ViewBag.Query, category = ViewBag.Category })" />
+                                <div class="qty-form">
+                                    <input type="number" name="quantity" value="1" min="1" max="@(p.Stock > 0 ? p.Stock : 1)" @(p.Stock <= 0 ? "disabled" : null) />
+                                    <button type="submit" class="btn-accent" @(p.Stock <= 0 ? "disabled" : null)>Add to cart</button>
+                                </div>
                             </form>
+                        }
+                        else if (User.IsInRole("Admin"))
+                        {
+                            <a class="btn-ghost" asp-action="Edit" asp-route-rowKey="@p.RowKey">Edit</a>
                         }
                         else
                         {

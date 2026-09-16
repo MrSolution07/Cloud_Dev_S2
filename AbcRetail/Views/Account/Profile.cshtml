@@ -28,6 +28,24 @@
             City
             <input asp-for="City" />
         </label>
+        <label>
+            Address
+            <input asp-for="AddressLine" />
+        </label>
+        <label>
+            Postal code
+            <input asp-for="PostalCode" />
+        </label>
+        <label>
+            New password (optional)
+            <input asp-for="NewPassword" />
+            <span asp-validation-for="NewPassword" class="text-danger"></span>
+        </label>
+        <label>
+            Confirm new password
+            <input asp-for="ConfirmNewPassword" />
+            <span asp-validation-for="ConfirmNewPassword" class="text-danger"></span>
+        </label>
         <div class="cta-row">
             <button type="submit" class="btn-accent">Save profile</button>
         </div>

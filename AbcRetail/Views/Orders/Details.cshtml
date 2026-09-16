@@ -1,0 +1,73 @@
+@model AbcRetail.Models.OrderDetailsViewModel
+@{
+    ViewData["Title"] = "Order details";
+    var resolveBlobUrl = ViewBag.BlobUrlResolver as Func<string, string>;
+}
+
+<section class="glass-panel">
+    <h1 class="section-title">Order @Model.Order.RowKey</h1>
+    <p class="section-lead">
+        <span class="pill">@Model.Order.Status</span>
+        · payment @Model.Order.PaymentStatus
+        · @Model.Order.CustomerEmail
+    </p>
+    <p>Placed @Model.Order.CreatedUtc.ToString("u") · Total <strong>@Model.Order.Total.ToString("C")</strong></p>
+    <p>@Model.Order.ShipFirstName @Model.Order.ShipLastName · @Model.Order.AddressLine, @Model.Order.ShipCity @Model.Order.PostalCode</p>
+    @if (!string.IsNullOrWhiteSpace(Model.Order.PaymentReference))
+    {
+        <p class="text-muted small">Payment reference <code>@Model.Order.PaymentReference</code>
+            @if (!string.IsNullOrWhiteSpace(Model.Order.CardLast4))
+            {
+                <text>· ending @Model.Order.CardLast4</text>
+            }
+        </p>
+    }
+
+    <div class="order-list">
+        @foreach (var line in Model.Lines)
+        {
+            var thumb = !string.IsNullOrWhiteSpace(line.ImageBlobName) && resolveBlobUrl is not null ? resolveBlobUrl(line.ImageBlobName) : null;
+            <div class="order-card">
+                @if (thumb is not null)
+                {
+                    <img class="product-thumb" src="@thumb" alt="@line.Name" />
+                }
+                <div>
+                    <strong>@line.Name</strong>
+                    <div class="text-muted small">@line.Quantity × @line.UnitPrice.ToString("C")</div>
+                </div>
+                <strong>@((line.UnitPrice * line.Quantity).ToString("C"))</strong>
+            </div>
+        }
+    </div>
+
+    @if (Model.IsAdmin)
+    {
+        <form asp-action="UpdateStatus" method="post" class="form-grid" style="margin-top:1rem;"
+              onsubmit="return this.status.value !== 'Cancelled' || confirm('Cancel this order?');">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="orderId" value="@Model.Order.RowKey" />
+            <label>
+                Update status
+                <select name="status">
+                    @foreach (var s in new[] { "Pending", "Paid", "Processing", "Shipped", "Completed", "Cancelled", "Failed" })
+                    {
+                        if (s == Model.Order.Status)
+                        {
+                            <option value="@s" selected>@s</option>
+                        }
+                        else
+                        {
+                            <option value="@s">@s</option>
+                        }
+                    }
+                </select>
+            </label>
+            <button type="submit" class="btn-accent">Save status</button>
+        </form>
+    }
+    else
+    {
+        <a class="btn-ghost" asp-action="Mine">Back to my orders</a>
+    }
+</section>

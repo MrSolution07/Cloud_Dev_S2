@@ -1,0 +1,43 @@
+@model IReadOnlyList<AbcRetail.Models.OrderEntity>
+@{
+    ViewData["Title"] = "My orders";
+}
+
+<section class="glass-panel">
+    <h1 class="section-title">My orders</h1>
+    <p class="section-lead">Orders stored in Azure Tables for your account.</p>
+
+    @if (!Model.Any())
+    {
+        <p>No orders yet. When you complete checkout they will show here.</p>
+        <a class="btn-accent" asp-controller="Products" asp-action="Index">Shop now</a>
+    }
+    else
+    {
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Order</th>
+                    <th>Placed</th>
+                    <th>Status</th>
+                    <th>Payment</th>
+                    <th>Total</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach (var o in Model)
+            {
+                <tr>
+                    <td class="mono">@o.RowKey[..Math.Min(8, o.RowKey.Length)]…</td>
+                    <td>@o.CreatedUtc.ToString("dd MMM yyyy HH:mm") UTC</td>
+                    <td><span class="pill">@o.Status</span></td>
+                    <td>@o.PaymentStatus</td>
+                    <td>@o.Total.ToString("C")</td>
+                    <td><a class="btn-glass" asp-action="Details" asp-route-orderId="@o.RowKey">Details</a></td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    }
+</section>

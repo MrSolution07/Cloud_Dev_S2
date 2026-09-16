@@ -32,7 +32,9 @@
                         <li><a asp-controller="Products" asp-action="Index">Shop</a></li>
                         @if (User.Identity?.IsAuthenticated == true)
                         {
-                            <li><a asp-controller="Orders" asp-action="Cart">Cart</a></li>
+                            <li>
+                                <a asp-controller="Cart" asp-action="Index">Cart @await Component.InvokeAsync("CartCount")</a>
+                            </li>
                         }
                         <li><a asp-controller="Home" asp-action="Privacy">About</a></li>
                     }
@@ -48,6 +50,10 @@
                             @if (User.IsInRole("Admin"))
                             {
                                 <li><a class="dropdown-item" asp-controller="Products" asp-action="Index">View shop</a></li>
+                            }
+                            else
+                            {
+                                <li><a class="dropdown-item" asp-controller="Orders" asp-action="Mine">My orders</a></li>
                             }
                             <li>
                                 <form asp-controller="Account" asp-action="Logout" method="post">
@@ -97,7 +103,8 @@
                     <a asp-controller="Products" asp-action="Index">Shop</a>
                     @if (User.Identity?.IsAuthenticated == true)
                     {
-                        <a asp-controller="Orders" asp-action="Cart">Cart</a>
+                        <a asp-controller="Cart" asp-action="Index">Cart</a>
+                        <a asp-controller="Orders" asp-action="Mine">Orders</a>
                     }
                     <a asp-controller="Home" asp-action="Privacy">About</a>
                 }

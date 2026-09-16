@@ -18,15 +18,10 @@
             }
             else
             {
-                <a class="btn-ghost" asp-controller="Orders" asp-action="Cart">My cart</a>
+                <a class="btn-ghost" asp-controller="Cart" asp-action="Index">My cart</a>
             }
         }
-        <!-- I don't need this since now I will be using the nav bar to log in  -->
-        <!-- else
-        {
-            <a class="btn-ghost" asp-controller="Account" asp-action="Login">Customer login</a>
-            <a class="btn-ghost" asp-controller="Account" asp-action="Login" asp-route-returnUrl="/Products/Manage">Admin login</a>
-        } -->
+        <!-- Login lives in the header so the hero stays a shop CTA. -->
     </div>
 
     @if (!ready)
@@ -44,7 +39,7 @@
         </article>
         <article>
             <h3>Secure checkout</h3>
-            <p>Your details stay protected from cart to delivery.</p>
+            <p>Simulated card payment with server-side totals and stock checks.</p>
         </article>
         <article>
             <h3>Easy returns</h3>

@@ -12,8 +12,18 @@
         </div>
         <a class="btn-accent" asp-action="Create">Add product</a>
     </div>
+    <form method="get" class="shop-filters">
+        <input type="search" name="q" value="@ViewBag.Query" placeholder="Search catalog" />
+        <button type="submit" class="btn-glass">Search</button>
+    </form>
 
-    <table class="data-table">
+    @if (!Model.Any())
+    {
+        <p>No products match. Add a product or clear the search.</p>
+    }
+    else
+    {
+        <table class="data-table">
         <thead>
             <tr>
                 <th>Image</th>
@@ -46,7 +56,8 @@
                 <td>@p.Stock</td>
                 <td class="mono">@p.AllImageBlobNames.Count image(s)</td>
                 <td>
-                    <form asp-action="Delete" method="post" onsubmit="return confirm('Delete this product?');">
+                    <a class="btn-glass" asp-action="Edit" asp-route-rowKey="@p.RowKey">Edit</a>
+                    <form asp-action="Delete" method="post" onsubmit="return confirm('Delete this product and its images?');" style="display:inline;">
                         @Html.AntiForgeryToken()
                         <input type="hidden" name="rowKey" value="@p.RowKey" />
                         <button type="submit" class="btn-danger">Delete</button>
@@ -56,4 +67,5 @@
         }
         </tbody>
     </table>
+    }
 </section>

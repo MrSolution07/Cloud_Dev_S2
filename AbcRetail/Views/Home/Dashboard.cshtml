@@ -39,6 +39,10 @@
         <strong class="stat-value">@Model.ProductImageCount</strong>
     </article>
     <article class="stat-tile glass-panel">
+        <span class="stat-label">Orders</span>
+        <strong class="stat-value">@Model.OrderCount</strong>
+    </article>
+    <article class="stat-tile glass-panel">
         <span class="stat-label">Queue Messages</span>
         <strong class="stat-value">@Model.QueueMessageCount</strong>
     </article>
@@ -114,9 +118,24 @@
             <h2 class="section-title" style="font-size:1.25rem;">Recent Orders</h2>
             <a class="btn-glass" asp-controller="Orders" asp-action="Index">View queue</a>
         </div>
-        @if (!Model.RecentOrders.Any())
+        @if (!Model.RecentTableOrders.Any() && !Model.RecentOrders.Any())
         {
-            <p class="section-lead" style="margin:0;">No messages in the queue yet. <a asp-controller="Products" asp-action="Index">Send your first order</a>.</p>
+            <p class="section-lead" style="margin:0;">No orders yet.</p>
+        }
+        else if (Model.RecentTableOrders.Any())
+        {
+            <div class="order-list">
+            @foreach (var o in Model.RecentTableOrders)
+            {
+                <div class="order-card">
+                    <div>
+                        <strong>@o.CustomerEmail</strong>
+                        <div class="text-muted small">@o.Total.ToString("C") · @o.CreatedUtc.ToString("dd MMM")</div>
+                    </div>
+                    <span class="pill">@o.Status</span>
+                </div>
+            }
+            </div>
         }
         else
         {
