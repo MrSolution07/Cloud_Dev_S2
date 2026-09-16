@@ -8,6 +8,8 @@ public class AzureStorageOptions
     public string ConnectionString { get; set; } = string.Empty;
     public string CustomersTable { get; set; } = "Customers";
     public string ProductsTable { get; set; } = "Products";
+    public string OrdersTable { get; set; } = "Orders";
+    public string CartTable { get; set; } = "CartItems";
     public string BlobContainer { get; set; } = "product-images";
     public string QueueName { get; set; } = "order-processing";
     public string InventoryQueueName { get; set; } = "inventory-management";
