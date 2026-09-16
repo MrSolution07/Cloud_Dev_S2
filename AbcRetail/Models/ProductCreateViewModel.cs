@@ -16,6 +16,9 @@ public class ProductCreateViewModel
     [Range(0, 1_000_000)]
     public int Stock { get; set; }
 
+    [StringLength(80)]
+    public string? Category { get; set; }
+
     // Up to 5 images; first uploaded becomes the cover image.
     public List<IFormFile> Images { get; set; } = [];
 }

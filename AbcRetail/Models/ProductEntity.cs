@@ -24,6 +24,9 @@ public class ProductEntity : ITableEntity
     [Range(0, 1_000_000)]
     public int Stock { get; set; }
 
+    [StringLength(80)]
+    public string? Category { get; set; }
+
     // Legacy single-image field (kept for backward compatibility with existing table rows).
     public string? ImageBlobName { get; set; }
 

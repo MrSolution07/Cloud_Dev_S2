@@ -15,4 +15,7 @@ public class OrdersIndexViewModel
     public IReadOnlyList<OrderMessageViewModel> PeekedInventoryMessages { get; set; } = [];
     public int ApproximateOrderCount { get; set; }
     public int ApproximateInventoryCount { get; set; }
+    public IReadOnlyList<OrderEntity> TableOrders { get; set; } = [];
+    public string? StatusFilter { get; set; }
+    public string? Query { get; set; }
 }

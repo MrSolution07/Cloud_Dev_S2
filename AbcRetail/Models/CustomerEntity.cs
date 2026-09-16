@@ -30,6 +30,12 @@ public class CustomerEntity : ITableEntity
     [StringLength(120)]
     public string? City { get; set; }
 
+    [StringLength(200)]
+    public string? AddressLine { get; set; }
+
+    [StringLength(20)]
+    public string? PostalCode { get; set; }
+
     // Hashed with PasswordHasher<CustomerEntity>; empty for legacy rows created before auth existed.
     public string PasswordHash { get; set; } = string.Empty;
 

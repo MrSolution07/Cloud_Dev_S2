@@ -19,7 +19,13 @@ public class RegisterViewModel
     [StringLength(120)]
     public string? City { get; set; }
 
-    [Required, StringLength(100, MinimumLength = 6)]
+    [StringLength(200)]
+    public string? AddressLine { get; set; }
+
+    [StringLength(20)]
+    public string? PostalCode { get; set; }
+
+    [Required, StringLength(100, MinimumLength = 8, ErrorMessage = "Password must be at least 8 characters.")]
     [DataType(DataType.Password)]
     public string Password { get; set; } = string.Empty;
 
@@ -59,5 +65,18 @@ public class ProfileViewModel
     [StringLength(120)]
     public string? City { get; set; }
 
+    [StringLength(200)]
+    public string? AddressLine { get; set; }
+
+    [StringLength(20)]
+    public string? PostalCode { get; set; }
+
     public string Role { get; set; } = string.Empty;
+
+    [DataType(DataType.Password)]
+    public string? NewPassword { get; set; }
+
+    [DataType(DataType.Password)]
+    [Compare(nameof(NewPassword), ErrorMessage = "Passwords do not match.")]
+    public string? ConfirmNewPassword { get; set; }
 }
